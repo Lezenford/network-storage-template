@@ -1,78 +1,114 @@
 package ru.gb.storage.server;
 
-//1. Реализовать echo-server с использованием Java NIO
-//2. *Доработать сервер таким образом, чтобы ответ клиенту приходил только после получения от него символа
-//переноса строки (ждать всю строку целиком, прежде чем отправить ее обратно клиенту) (опционально)
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
-import java.nio.channels.SelectionKey;
-import java.nio.channels.Selector;
-import java.nio.channels.ServerSocketChannel;
-import java.nio.channels.SocketChannel;
-import java.util.Iterator;
-import java.util.Set;
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.*;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+
 
 public class Server {
 
+    private final int port;
+    StringBuilder message = new StringBuilder();  // стрингбилдер для склеивания нашего сообшения для отправки клиенту
 
-    public static void main(String[] args) throws IOException {
-        new Server().start();
+    public static void main(String[] args) throws InterruptedException {
+        new Server(9000).start();
     }
 
-    public void start() throws IOException {
-        Selector selector = Selector.open();
-        ServerSocketChannel serverSocket = ServerSocketChannel.open();
-        serverSocket.socket().bind(new InetSocketAddress("localhost", 9000));
-        serverSocket.configureBlocking(false);
-        serverSocket.register(selector, SelectionKey.OP_ACCEPT);
+    public Server(int port) {
+        this.port = port;
+    }
 
-        System.out.println("Server started");
+    public void start() throws InterruptedException {
+        NioEventLoopGroup bossGroup = new NioEventLoopGroup(1);
+        NioEventLoopGroup workerGroup = new NioEventLoopGroup();
+        try {
+            ServerBootstrap server = new ServerBootstrap();
+            server
+                    .group(bossGroup, workerGroup)
+                    .channel(NioServerSocketChannel.class)
+                    .childHandler(new ChannelInitializer<NioSocketChannel>() {
+                        @Override
+                        protected void initChannel(NioSocketChannel nioSocketChannel) throws Exception {
+                            nioSocketChannel.pipeline().addLast(
+                                    new ChannelInboundHandlerAdapter() {
+                                        @Override
+                                        public void channelRegistered(ChannelHandlerContext ctx) throws Exception {
+                                            System.out.println("Channel registered");
+                                        }
 
-        while (true) {
-            selector.select();
-            System.out.println("New selector event");
-            Set<SelectionKey> selectionKeys = selector.selectedKeys();
-            Iterator<SelectionKey> iterator = selectionKeys.iterator();
-            while (iterator.hasNext()) {
-                SelectionKey selectionKey = iterator.next();
-                if (selectionKey.isAcceptable()) {
-                    System.out.println("New selector acceptable event");
-                    register(selector, serverSocket);
-                }
+                                        @Override
+                                        public void channelUnregistered(ChannelHandlerContext ctx) throws Exception {
+                                            System.out.println("Channel unregistered");
+                                        }
 
-                if (selectionKey.isReadable()) {
-                    System.out.println("New selector readable event");
-                    readMessage(selectionKey);
-                }
-                iterator.remove();
-            }
+                                        @Override
+                                        public void channelActive(ChannelHandlerContext ctx) throws Exception {
+                                            System.out.println("Channel active");
+                                        }
+
+                                        @Override
+                                        public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+                                            System.out.println("Channel inactive");
+                                        }
+
+                                        @Override
+                                        public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+                                            System.out.print("Received message: ");
+                                            final ByteBuf m = (ByteBuf) msg;
+
+                                            for (int i = m.readerIndex(); i < m.writerIndex(); i++) {
+                                                System.out.print((char) m.getByte(i)); //читаем данные из буфера так, чтобы не сдвинуть индексы
+                                                message.append((char) m.getByte(i));
+                                            }
+                                            m.clear();
+                                            System.out.flush();
+                                            System.out.println();
+
+                                            char[] chars = new char[message.length()];  // приводим сообщение в массиву чаров чтобы в дальнейшем отследить
+                                                                                        // символы переноса строки
+                                            message.toString().getChars(0, message.length(), chars, 0);
+
+                                            for (int i = 0; i < chars.length - 1; i++) {
+                                                if ((byte) chars[i] == 92 && (byte) chars[i + 1] == 110) {  // здесь взяты байтовые значения символов
+                                                                                                            // "/" - 92 и "n" - 110
+                                                    System.out.println("Find symbol line break");
+                                                    message.delete(message.length() - 2, message.length());  // обрезаем наш месседж чтобы он не содержал сиволов /n
+                                                    ctx.writeAndFlush(((ByteBuf) msg).writeBytes(message.toString().getBytes(StandardCharsets.UTF_8)));
+                                                    message.delete(0, message.length());  // удаляем посностью наше сообщение которое копилось для отправки,
+                                                                                            // чтобы можно было формировать новое сообщение.
+                                                }
+                                            }
+                                        }
+
+                                        @Override
+                                        public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws
+                                                Exception {
+                                            System.out.println("caused Exception");
+                                            cause.printStackTrace();
+                                            ctx.close();
+                                        }
+                                    }
+                            );
+                        }
+                    })
+                    .option(ChannelOption.SO_BACKLOG, 128)
+                    .childOption(ChannelOption.SO_KEEPALIVE, true);
+
+            Channel channel = server.bind(port).sync().channel();
+            System.out.println("Server started");
+            channel.closeFuture().sync();
+
+        } finally {
+            bossGroup.shutdownGracefully();
+            workerGroup.shutdownGracefully();
         }
-    }
-
-    public void register(Selector selector, ServerSocketChannel serverSocket) throws IOException {
-        SocketChannel client = serverSocket.accept();
-        client.configureBlocking(false);
-        client.register(selector, SelectionKey.OP_READ);
-        System.out.println("New client is connected");
-    }
-
-    public void readMessage(SelectionKey key) throws IOException {
-
-        SocketChannel client = (SocketChannel) key.channel();
-        ByteBuffer byteBuffer = ByteBuffer.allocate(256);
-        client.read(byteBuffer);
-
-        String message = new String(byteBuffer.array());
-
-        System.out.println("Received message from client: " + message);
-
-        byteBuffer.flip();
-        System.out.println("Send message from client: " + message);
-        client.write(byteBuffer);
-
-
     }
 }
 
