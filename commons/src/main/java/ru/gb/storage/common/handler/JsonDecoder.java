@@ -14,14 +14,13 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 
-public class JsonDecoder extends MessageToMessageDecoder<String> {
+public class JsonDecoder extends MessageToMessageDecoder<ByteBuf> {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     @Override
-    protected void decode(ChannelHandlerContext ctx, String msg, List<Object> out) throws Exception {
-        final byte[] bytes = msg.getBytes(StandardCharsets.UTF_8);
-        System.out.println("Объект декодировки: " + bytes.toString());
+    protected void decode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) throws Exception {
+        final byte[] bytes = ByteBufUtil.getBytes(msg);
         Message message = OBJECT_MAPPER.readValue(bytes, Message.class);
         out.add(message);
     }

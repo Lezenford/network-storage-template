@@ -21,7 +21,6 @@ public class JsonEncoder extends MessageToMessageEncoder<Message> {
 
     @Override
     protected void encode(ChannelHandlerContext ctx, Message msg, List<Object> out) throws Exception {
-        System.out.println("Объект кодировки: Json file: " + msg);
         byte[] value = OBJECT_MAPPER.writeValueAsBytes(msg);
         out.add(ctx.alloc().buffer().writeBytes(value));
 

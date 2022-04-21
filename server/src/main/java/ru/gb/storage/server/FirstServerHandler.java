@@ -2,12 +2,11 @@ package ru.gb.storage.server;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import ru.gb.storage.common.message.AuthMessage;
-import ru.gb.storage.common.message.DateMessage;
-import ru.gb.storage.common.message.Message;
-import ru.gb.storage.common.message.TextMessage;
+import ru.gb.storage.common.message.*;
 
 import java.awt.*;
+import java.io.*;
+import java.util.Arrays;
 
 public class FirstServerHandler extends SimpleChannelInboundHandler<Message> {
 
@@ -36,6 +35,29 @@ public class FirstServerHandler extends SimpleChannelInboundHandler<Message> {
             System.out.println("incoming auth message: " + message.getPassword() + " " + message.getPassword());
             ctx.writeAndFlush(msg);
         }
+        if (msg instanceof FileRequestMessage) {
+            FileRequestMessage frm = (FileRequestMessage) msg;
+            final File file = new File(frm.getPath());
+            try (final RandomAccessFile raf = new RandomAccessFile(file, "r")) {
+                while (raf.getFilePointer() != raf.length()) {
+                    final byte[] fileContent;
+                    final long available = raf.length() - raf.getFilePointer();
+                    if (available > 100 * 1024) {
+                        fileContent = new byte[100 * 1024];
+                    } else {
+                        fileContent = new byte[(int) available];
+                    }
+                    final FileContentMessage fileContentMessage = new FileContentMessage();
+                    fileContentMessage.setStartPosition(raf.getFilePointer());
+                    raf.read(fileContent);
+                    fileContentMessage.setContent(fileContent);
+                    fileContentMessage.setLastPosition(raf.getFilePointer() == raf.length());
+                    ctx.writeAndFlush(fileContentMessage);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override
@@ -48,7 +70,6 @@ public class FirstServerHandler extends SimpleChannelInboundHandler<Message> {
     public void channelInactive(ChannelHandlerContext ctx) {
         System.out.println("client disconnect");
     }
-
 
 
 }

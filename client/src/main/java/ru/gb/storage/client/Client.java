@@ -16,11 +16,12 @@ import io.netty.handler.codec.string.StringEncoder;
 import io.netty.util.ReferenceCountUtil;
 import ru.gb.storage.common.handler.JsonDecoder;
 import ru.gb.storage.common.handler.JsonEncoder;
-import ru.gb.storage.common.message.AuthMessage;
-import ru.gb.storage.common.message.DateMessage;
-import ru.gb.storage.common.message.Message;
-import ru.gb.storage.common.message.TextMessage;
+import ru.gb.storage.common.message.*;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -43,20 +44,34 @@ public class Client {
                         @Override
                         protected void initChannel(SocketChannel ch) {
                             ch.pipeline().addLast(
-                                    //максимальный размер сообщения равен 1024*1024 байт, в начале сообщения пдля хранения длины зарезервировано 3 байта,
-                                    //которые отбросятся после получения всего сообщения и передачи его дальше по цепочке
                                     new LengthFieldBasedFrameDecoder(1024 * 1024, 0, 3, 0, 3),
-                                    //Перед отправкой добавляет в начало сообщение 3 байта с длиной сообщения
                                     new LengthFieldPrepender(3),
-                                    new StringDecoder(),
-                                    new StringEncoder(),
                                     new JsonDecoder(),
                                     new JsonEncoder(),
                                     new SimpleChannelInboundHandler<Message>() {
+                                        @Override
+                                        public void channelActive(ChannelHandlerContext ctx) throws Exception {
+                                            final FileRequestMessage frm = new FileRequestMessage();
+                                            frm.setPath("C:/Users/Fokusmod/Desktop/Screenshots.zip");
+                                            ctx.writeAndFlush(frm);
+                                        }
 
                                         @Override
                                         protected void channelRead0(ChannelHandlerContext ctx, Message msg) {
-                                            System.out.println("receive msg " + msg);
+                                            if (msg instanceof FileContentMessage) {
+                                                System.out.println("FileContentMessage");
+                                                FileContentMessage fcm =  (FileContentMessage) msg;
+                                                try (RandomAccessFile randomAccessFile = new RandomAccessFile("C:/Users/Fokusmod/Desktop/TextScreenshots.zip", "rw")) {
+                                                    randomAccessFile.seek(fcm.getStartPosition());
+                                                    randomAccessFile.write(fcm.getContent());
+                                                    if (fcm.isLastPosition()) {
+                                                        ctx.close();
+                                                    }
+                                                } catch (IOException e) {
+                                                    e.printStackTrace();
+                                                }
+
+                                            }
                                         }
                                     }
                             );
@@ -65,29 +80,6 @@ public class Client {
 
             System.out.println("Client started");
             Channel channel = bootstrap.connect("localhost", 9000).sync().channel();
-
-            while (channel.isActive()) {
-                TextMessage textMessage = new TextMessage();
-                textMessage.setText(String.format("%s %s", LocalDateTime.now(), Thread.currentThread().getName()));
-                System.out.println("Try to send  text message: " + textMessage);
-                channel.writeAndFlush(textMessage);
-                Thread.sleep(3000);
-
-                DateMessage dateMessage = new DateMessage();
-                dateMessage.setDate(new Date());
-                System.out.println("Try to send date message: " + dateMessage);
-                channel.writeAndFlush(dateMessage);
-                Thread.sleep(3000);
-
-                AuthMessage authMessage = new AuthMessage();
-                authMessage.setLogin("login");
-                authMessage.setPassword("password");
-                System.out.println("Try to send auth message: " + authMessage);
-                channel.writeAndFlush(authMessage);
-                Thread.sleep(3000);
-            }
-
-
             channel.closeFuture().sync();
 
         } catch (InterruptedException e) {
