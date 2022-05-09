@@ -1,5 +1,7 @@
 package ru.gb.storage.server;
 
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import message.*;
@@ -9,6 +11,8 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 
 public class FirstServerHandler extends SimpleChannelInboundHandler <Message> {
+    private RandomAccessFile accessFile;
+
     private int counterMsg=0;
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Message msg) throws Exception {
@@ -19,9 +23,6 @@ public class FirstServerHandler extends SimpleChannelInboundHandler <Message> {
             // допилить обаботку авторизации
             //
             ctx.writeAndFlush(msg);
-        }
-        if (msg instanceof FileRequestMessage){
-
         }
         if (msg instanceof TextMessage){
             TextMessage txtMessage = (TextMessage) msg;
@@ -36,29 +37,43 @@ public class FirstServerHandler extends SimpleChannelInboundHandler <Message> {
 
         if (msg instanceof FileRequestMessage){
             FileRequestMessage frMessage = (FileRequestMessage) msg;
-            final File file = new File(frMessage.getPath());
-            try (final RandomAccessFile accessFile = new RandomAccessFile(file, "r");){
-                while (accessFile.getFilePointer()!= accessFile.length()){
-                    final byte[] fileContent;
-                    final long lengthSector = accessFile.length()-accessFile.getFilePointer();
-                    if (lengthSector > 64*1024){
-                        fileContent = new byte[64*1024];
-                    } else{
-                        fileContent= new byte[(int)lengthSector];
-                    }
-                    final FileContentMessage flMessage = new FileContentMessage();
-                    flMessage.setStartPosition(accessFile.getFilePointer());
-                    accessFile.read(fileContent);
-                    flMessage.setContent(fileContent);
-                    flMessage.setLast(accessFile.getFilePointer() == accessFile.length());
-                    ctx.writeAndFlush(flMessage);
-                    System.out.println("Message OUT " + ++counterMsg);
-                }
-            } catch (IOException e){
-                throw new RuntimeException(e);
+            if (accessFile ==null){
+                final File file = new File(frMessage.getPath());
+                accessFile = new RandomAccessFile(file,"r");
+                sendTailFile(ctx);
             }
-
         }
+    }
+
+    private void sendTailFile(ChannelHandlerContext ctx) throws IOException {
+        if (accessFile != null){
+            final byte[] fileContent;
+            final long lengthSector = accessFile.length()-accessFile.getFilePointer();
+            if (lengthSector > 64*1024){
+                fileContent = new byte[64*1024];
+            } else{
+                fileContent= new byte[(int)lengthSector];
+            }
+            final FileContentMessage flMessage = new FileContentMessage();
+            flMessage.setStartPosition(accessFile.getFilePointer());
+            accessFile.read(fileContent);
+            flMessage.setContent(fileContent);
+            final boolean last = accessFile.getFilePointer() == accessFile.length();
+            flMessage.setLast(last);
+            ctx.channel().writeAndFlush(flMessage).addListener(new ChannelFutureListener() {
+                @Override
+                public void operationComplete(ChannelFuture future) throws Exception {
+                    if (!last) {
+                        sendTailFile(ctx);
+                    }
+                }
+            });
+            if (last){
+                accessFile.close();
+                accessFile=null;
+            }
+        }
+
     }
 
     @Override
@@ -70,6 +85,9 @@ public class FirstServerHandler extends SimpleChannelInboundHandler <Message> {
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
         System.out.println("Client is disconnect");
+        if (accessFile != null){
+            ctx.close();
+        }
     }
 
     @Override
@@ -77,8 +95,9 @@ public class FirstServerHandler extends SimpleChannelInboundHandler <Message> {
         System.out.println("New active channel");
 //        AuthMessage answer = new AuthMessage();
         TextMessage answer = new TextMessage();
-        answer.setText("Successfully connection");
+        answer.setText("Successfully connection. For HELP send //help");
         ctx.writeAndFlush(answer);
+
     }
 
 }

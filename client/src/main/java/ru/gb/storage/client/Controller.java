@@ -8,6 +8,5 @@ public class Controller {
 
     private String nick;
     public void onSendButtonClick(ActionEvent actionEvent) {
-
     }
 }
