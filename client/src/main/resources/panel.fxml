@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+
+<VBox alignment="CENTER"  spacing="3" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="ru.gb.storage.client.PanelController">
+    <HBox>
+                <ComboBox fx:id="diskBox" onAction="#selectDiskAction"/>
+                <TextField fx:id="pathField" editable="false" HBox.hgrow="ALWAYS" />
+                <Button text="  Up  " onAction="#btnPathUpAction"/>
+    </HBox>
+    <TableView fx:id="filesTable" VBox.vgrow="ALWAYS" />
+    <properties>
+        <contr><fx:reference source="controller" /></contr>
+    </properties>
+</VBox>

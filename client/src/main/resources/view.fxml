@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox alignment="CENTER" spacing="3" xmlns:fx="http://javafx.com/fxml"
+      fx:controller="ru.gb.storage.client.Controller">
+    <MenuBar maxHeight="15">
+        <Menu text=" Файл ">
+<!--            <MenuItem text=" Залогиниться " onAction="#menuItemDialogLogin" />-->
+            <MenuItem text=" Выход  " onAction="#btnExitAction"/>
+        </Menu>
+        <Menu text=" Справка ">
+            <MenuItem text=" О программе " />
+        </Menu>
+    </MenuBar>
+    <Label text=" DropBoxRockerok " alignment="CENTER" maxWidth="Infinity" />
+    <HBox VBox.vgrow="ALWAYS">
+        <fx:include fx:id="leftPanel" source = "panel.fxml" HBox.hgrow="ALWAYS"/>
+        <fx:include fx:id="rightPanel" source = "panel.fxml" HBox.hgrow="ALWAYS"/>
+    </HBox>
+    <HBox spacing="5">
+        <Button maxWidth="Infinity" text="Copy file" focusTraversable="false" HBox.hgrow="ALWAYS" onAction="#btnCopyAction" />
+        <Button maxWidth="Infinity" text="Move file" focusTraversable="false" HBox.hgrow="ALWAYS" />
+        <Button maxWidth="Infinity" text="Delete file" focusTraversable="false" HBox.hgrow="ALWAYS" />
+        <padding>
+            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+        </padding>
+    </HBox>
+</VBox>
