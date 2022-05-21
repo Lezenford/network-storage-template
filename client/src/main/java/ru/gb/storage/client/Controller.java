@@ -3,21 +3,27 @@ package ru.gb.storage.client;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.layout.VBox;
 
-import java.io.IOException;
-import java.nio.file.Files;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ResourceBundle;
 
-public class Controller {
-    private final int PORT = 9000;
-    private final String HOST = "localhost";
-
+public class Controller implements Initializable {
+    private Network myNetwork;
     private String nick;
     public void onSendButtonClick(ActionEvent actionEvent) {
+    }
+
+    @Override
+    public void initialize(URL location, ResourceBundle resources) {
+        myNetwork = new Network(args -> {
+
+        });
     }
 
     @FXML
@@ -47,14 +53,20 @@ public class Controller {
 
         Path srcPath = Paths.get(scrPanContr.getCurrentPath(),scrPanContr.getSelectedFileName());
         Path dstPath = Paths.get(dstPanContr.getCurrentPath()).resolve(srcPath.getFileName().toString());
+            String srcPathStr = String.valueOf(srcPath);
+            String dstPathStr = String.valueOf(dstPath);
 
-        try {
-            Files.copy(srcPath,dstPath);
-            dstPanContr.updateList(Paths.get(dstPanContr.getCurrentPath()));
-        } catch (IOException e) {
-            Alert alert= new Alert(Alert.AlertType.ERROR, "File is NOT Copy", ButtonType.OK);
-            alert.showAndWait();
-        }
+//        new ClientHandler(srcPathStr,dstPathStr);
+        dstPanContr.updateList(Paths.get(dstPanContr.getCurrentPath()));
+
+//        try {
+//            Files.copy(srcPath,dstPath);
+//            new ClientHandler(srcPath,dstPath);
+//            dstPanContr.updateList(Paths.get(dstPanContr.getCurrentPath()));
+//        } catch (IOException e) {
+//            Alert alert= new Alert(Alert.AlertType.ERROR, "File is NOT Copy", ButtonType.OK);
+//            alert.showAndWait();
+//        }
 
         //Удаление и перемещение https://youtu.be/LILeZhSHf1k?t=5450
 
