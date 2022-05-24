@@ -7,6 +7,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.scene.layout.VBox;
+import ru.gb.storage.message.AuthMessage;
 
 import java.net.URL;
 import java.nio.file.Path;
@@ -14,6 +15,7 @@ import java.nio.file.Paths;
 import java.util.ResourceBundle;
 
 public class Controller implements Initializable {
+    public PanelController panelController;
     private Network myNetwork;
     private String nick;
     public void onSendButtonClick(ActionEvent actionEvent) {
@@ -21,9 +23,16 @@ public class Controller implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        myNetwork = new Network(args -> {
+        myNetwork = new Network(this);
+        myNetwork.start();
+    }
 
-        });
+    public void sendToAuth(ActionEvent actionEvent){
+        AuthMessage message = new AuthMessage();
+        message.setLogin(loginField.getText());
+        message.setPass(passwordField.getText());
+        myNetwork.auth(message);
+        passwordField.clear();
     }
 
     @FXML
@@ -56,7 +65,6 @@ public class Controller implements Initializable {
             String srcPathStr = String.valueOf(srcPath);
             String dstPathStr = String.valueOf(dstPath);
 
-//        new ClientHandler(srcPathStr,dstPathStr);
         dstPanContr.updateList(Paths.get(dstPanContr.getCurrentPath()));
 
 //        try {

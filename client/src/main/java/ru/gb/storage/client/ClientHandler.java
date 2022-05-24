@@ -2,43 +2,54 @@ package ru.gb.storage.client;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import ru.gb.storage.message.AuthMessage;
 import ru.gb.storage.message.FileContentMessage;
-import ru.gb.storage.message.FileRequestMessage;
 import ru.gb.storage.message.Message;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
-public class ClientHandler extends SimpleChannelInboundHandler<Message> {
-        private String  nameFileIn;
-        private String  nameFileOut;
-        private Callback onSendMSG;
+public class ClientHandler  extends SimpleChannelInboundHandler<Message> {
 
-        public ClientHandler(String srcPathStr, String dstPathStr) {
-            this.nameFileIn = srcPathStr;
-            this.nameFileOut = dstPathStr;
-        }
+    private static Network network;
+//        private String  nameFileIn;
+//        private String  nameFileOut;
+//        public ClientHandler(String srcPathStr, String dstPathStr) {
+//            this.nameFileIn = srcPathStr;
+//            this.nameFileOut = dstPathStr;
+//        }
+//
+//    public ClientHandler() {
+//    }
+//
+//    @Override
+//        public void channelActive(ChannelHandlerContext ctx) throws Exception {
+//            final FileRequestMessage frMessage = new FileRequestMessage();
+//            frMessage.setPath(String.valueOf(nameFileIn));
+//            ctx.writeAndFlush(frMessage);
+//        }
 
-    public ClientHandler(Callback onSendMSG) {
+
+    public static void setNetwork(Network network) {
+        ClientHandler.network = network;
     }
 
     @Override
-        public void channelActive(ChannelHandlerContext ctx) throws Exception {
-            final FileRequestMessage frMessage = new FileRequestMessage();
-            frMessage.setPath(String.valueOf(nameFileIn));
-            ctx.writeAndFlush(frMessage);
-        }
-
-        @Override
         protected void channelRead0(ChannelHandlerContext ctx, Message msg) {
-            System.out.println("File transfer Start " + msg);
+            if (msg instanceof AuthMessage){
+                network.sendReqAuth(msg);
+            }
             if (msg instanceof FileContentMessage) {
+                System.out.println("File transfer Start " + msg);
                 FileContentMessage fcMessage = (FileContentMessage) msg;
-                try (final RandomAccessFile raf = new RandomAccessFile(String.valueOf(nameFileOut), "rw")) {
-                    raf.seek(fcMessage.getStartPosition());
+//                try (final RandomAccessFile raf = new RandomAccessFile(String.valueOf(nameFileOut), "rw")) {
+                try (final RandomAccessFile raf = new RandomAccessFile(network.corPathDwnd, "rw")) {
+                        raf.seek(fcMessage.getStartPosition());
                     raf.write(fcMessage.getContent());
                     if (fcMessage.isLast()) {
-                        ctx.close();
+                        network.controller.panelController.updateList((Path) Paths.get("."));
                         System.out.println("File transfer Finish");
                     }
                 } catch (IOException e) {

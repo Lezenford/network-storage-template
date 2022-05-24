@@ -9,8 +9,6 @@ import javafx.stage.Stage;
 public class Client  extends Application {
     private final int PORT = 9000;
     private final String HOST = "localhost";
-    private String nameFileIn="E:\\1";         // путь к файлу
-    private String nameFileOut="E:\\2";         // путь к файлу
 
     public static void main(String[] args) {
         Application.launch(args);

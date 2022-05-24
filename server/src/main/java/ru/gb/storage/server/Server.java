@@ -12,17 +12,13 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LengthFieldPrepender;
 
-public class Server {
-    private static int PORT=9000;
-
-    public Server(int port) {
-        this.PORT = PORT;
-    }
+public record Server(int port) {
 
     public static void main(String[] args) throws InterruptedException {
-        new Server(PORT).start();
+        new Server(9000).start();
     }
-    public void start() throws InterruptedException{
+
+    public void start() throws InterruptedException {
         NioEventLoopGroup bigGroup = new NioEventLoopGroup(1);
         NioEventLoopGroup clientGroup = new NioEventLoopGroup();
         try {
@@ -39,11 +35,11 @@ public class Server {
                                     new JsonDecoder(),
                                     new JsonEncoder(),
                                     new FirstServerHandler());
-                         }
+                        }
                     })
-                    .option(ChannelOption.SO_BACKLOG,128)
-                    .childOption(ChannelOption.SO_KEEPALIVE,true);
-            ChannelFuture future = server.bind(PORT).sync();
+                    .option(ChannelOption.SO_BACKLOG, 128)
+                    .childOption(ChannelOption.SO_KEEPALIVE, true);
+            ChannelFuture future = server.bind(port).sync();
             System.out.println("Server is start");
             future.channel().closeFuture().sync();
         } finally {

@@ -5,6 +5,7 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import ru.gb.storage.message.*;
+import ru.gb.storage.server.Database.Database;
 
 import java.io.File;
 import java.io.IOException;
@@ -19,10 +20,25 @@ public class FirstServerHandler extends SimpleChannelInboundHandler <Message> {
         if (msg instanceof AuthMessage) {
             AuthMessage authMessage = (AuthMessage) msg;
             System.out.println("Authorization");
-            //
+            try {
+                if (!Database.isConnected()) {
+                    Database.connect();
+                }
+                if (Database.login(authMessage.getLogin(), authMessage.getPass())) {
+                    TextMessage textMessage = new TextMessage();
+                    textMessage.setText("success");
+                    ctx.writeAndFlush(textMessage);
+                    Database.disconnect();
+                } else {
+                    TextMessage textMessage = new TextMessage();
+                    textMessage.setText("Incorrect login or password");
+                    ctx.writeAndFlush(textMessage);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             // допилить обаботку авторизации
-            //
-            ctx.writeAndFlush(msg);
+//            ctx.writeAndFlush(msg);
         }
         if (msg instanceof TextMessage){
             TextMessage txtMessage = (TextMessage) msg;

@@ -1,7 +1,9 @@
 package ru.gb.storage.client;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.*;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -9,18 +11,26 @@ import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LengthFieldPrepender;
 import ru.gb.storage.handler.JsonDecoder;
 import ru.gb.storage.handler.JsonEncoder;
+import ru.gb.storage.message.AuthMessage;
 import ru.gb.storage.message.Message;
 
 public class Network {
     private final int PORT = 9000;
     private final String HOST = "localhost";
     public SocketChannel sChannel;
+    public String corPathDwnd;
+    Controller controller;
+
+    private String pathCli = "C:\\Clients\\";
+    private String pathSrv = "C:";
     private String nameFileIn;
     private String nameFileOut;
-    private Callback onSendMSG;
 
-    public Network(Callback onSendMSG) {
-        this.onSendMSG = onSendMSG;
+    public Network(Controller controller) {
+        this.controller = controller;
+    }
+
+    public void start() {
         Thread t = new Thread(()-> {
             final NioEventLoopGroup group = new NioEventLoopGroup(1);
             try {
@@ -37,21 +47,16 @@ public class Network {
                                         new LengthFieldPrepender(3),
                                         new JsonDecoder(),
                                         new JsonEncoder(),
-                                        (if (onSendMSG !=null) {
-                                            new ClientHandler(onSendMSG)
-                                        }else{
-                                        new SimpleChannelInboundHandler<Message>() {
-                                            @Override
-                                            protected void channelRead0(ChannelHandlerContext ctx, Message msg) throws Exception {
-                                                System.out.println(msg);
-                                        }}})
+                                        new ClientHandler()
                                 );
                             }
-                        });
+                        }
+                        );
+                ClientHandler.setNetwork(this);
                 System.out.println("Client is start");
                 Channel channel;
                 channel = (Channel) bootstrap.connect(HOST, PORT).sync().channel();
-                ((io.netty.channel.Channel) channel).closeFuture().sync();
+                channel.closeFuture().sync();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             } finally {
@@ -60,5 +65,13 @@ public class Network {
         });
         t.setDaemon(true);
         t.start();
+    }
+
+
+    public void sendReqAuth(Message msg) {
+    }
+
+    public void auth(AuthMessage msg) {
+        sChannel.writeAndFlush(msg);
     }
 }
