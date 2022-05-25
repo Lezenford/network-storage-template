@@ -13,13 +13,18 @@ import ru.gb.storage.handler.JsonDecoder;
 import ru.gb.storage.handler.JsonEncoder;
 import ru.gb.storage.message.AuthMessage;
 import ru.gb.storage.message.Message;
+import ru.gb.storage.message.TextMessage;
+
+import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class Network {
     private final int PORT = 9000;
     private final String HOST = "localhost";
     public SocketChannel sChannel;
     public String corPathDwnd;
-    Controller controller;
+    protected Controller controller;
 
     private String pathCli = "C:\\Clients\\";
     private String pathSrv = "C:";
@@ -69,6 +74,35 @@ public class Network {
 
 
     public void sendReqAuth(Message msg) {
+        if (msg instanceof TextMessage) {
+            TextMessage tm = (TextMessage) msg;
+            if (tm.getText().equals("success")) {
+                controller.closeAuth();
+                createSrvDir(pathSrv);
+                sendDirOnCli(pathCli);
+                sendCliDir(pathSrv);
+            } else {
+                controller.errorAuth();
+            }
+        }
+    }
+
+    private void sendCliDir(String pathSrv) {
+    }
+
+    private void sendDirOnCli(String pathCli) {
+    }
+
+    private void createSrvDir(String pathSrv) {
+        String pathName=pathSrv;
+        pathName+="\\";
+        PanelController cliPanContr = (PanelController) controller.rightPanel.getProperties().get("Client");
+        Path cliPath = Paths.get(cliPanContr.getCurrentPath(),cliPanContr.getSelectedFileName());
+        pathName += String.valueOf(cliPath);
+        pathSrv = pathName;
+        File file = new File(pathName);
+        System.out.println(pathSrv);
+        file.mkdirs();
     }
 
     public void auth(AuthMessage msg) {

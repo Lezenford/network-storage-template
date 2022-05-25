@@ -6,9 +6,9 @@
 
 <VBox alignment="CENTER" spacing="3" xmlns:fx="http://javafx.com/fxml"
       fx:controller="ru.gb.storage.client.Controller">
-    <MenuBar maxHeight="15">
+    <MenuBar maxHeight="15" maxWidth="20">
         <Menu text=" Файл ">
-<!--            <MenuItem text=" Залогиниться " onAction="#menuItemDialogLogin" />-->
+            <MenuItem text=" Залогиниться " onAction="#menuItemDialogLogin" />
             <MenuItem text=" Выход  " onAction="#btnExitAction"/>
         </Menu>
         <Menu text=" Справка ">

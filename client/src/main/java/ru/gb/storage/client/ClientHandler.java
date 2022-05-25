@@ -14,6 +14,7 @@ import java.nio.file.Paths;
 public class ClientHandler  extends SimpleChannelInboundHandler<Message> {
 
     private static Network network;
+
 //        private String  nameFileIn;
 //        private String  nameFileOut;
 //        public ClientHandler(String srcPathStr, String dstPathStr) {
