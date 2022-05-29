@@ -23,6 +23,15 @@ public class Controller implements Initializable {
     private Network myNetwork;
     private String nick;
     private String pass;
+    public PanelController leftPanContr;
+    public PanelController rightPanContr;
+
+    public PanelController getLeftPanContr() {
+        return leftPanContr;
+    }
+    public PanelController getRightPanContr() {
+        return rightPanContr;
+    }
 
     @FXML
     VBox leftPanel, rightPanel;
@@ -33,13 +42,24 @@ public class Controller implements Initializable {
         myNetwork.start();
     }
 
+    public String getNick() {
+        return nick;
+    }
+
     public void btnExitAction(ActionEvent actionEvent) {
+        myNetwork.sChannel.close();
         Platform.exit();
     }
 
+    public void updateListPanel(String pathSrv, String pathCli) {
+        rightPanContr = (PanelController) rightPanel.getProperties().get("contrRight");
+        leftPanContr = (PanelController) leftPanel.getProperties().get("contrLeft");
+        leftPanContr.updateList(Path.of(pathCli));
+        rightPanContr.updateList(Path.of(pathSrv));
+    }
+
     public void btnCopyAction(ActionEvent actionEvent) {
-        PanelController leftPanContr = (PanelController) leftPanel.getProperties().get("contrLeft");
-        PanelController rightPanContr = (PanelController) rightPanel.getProperties().get("contrRight");
+
         if (leftPanContr.getSelectedFileName() == null && rightPanContr.getSelectedFileName() == null ){
             Alert alert= new Alert(Alert.AlertType.ERROR, "File not select", ButtonType.OK);
             alert.showAndWait();
@@ -57,26 +77,23 @@ public class Controller implements Initializable {
 
         Path srcPath = Paths.get(scrPanContr.getCurrentPath(),scrPanContr.getSelectedFileName());
         Path dstPath = Paths.get(dstPanContr.getCurrentPath()).resolve(srcPath.getFileName().toString());
-            String srcPathStr = String.valueOf(srcPath);
-            String dstPathStr = String.valueOf(dstPath);
+        String srcPathStr = String.valueOf(srcPath);
+        String dstPathStr = String.valueOf(dstPath);
 
         dstPanContr.updateList(Paths.get(dstPanContr.getCurrentPath()));
 
-//        try {
+        try {
 //            Files.copy(srcPath,dstPath);
-//            new ClientHandler(srcPath,dstPath);
-//            dstPanContr.updateList(Paths.get(dstPanContr.getCurrentPath()));
-//        } catch (IOException e) {
-//            Alert alert= new Alert(Alert.AlertType.ERROR, "File is NOT Copy", ButtonType.OK);
-//            alert.showAndWait();
-//        }
-
+            myNetwork.myCopyFile(srcPath,dstPath);
+            dstPanContr.updateList(Paths.get(dstPanContr.getCurrentPath()));
+        } catch (Exception e) {
+            Alert alert= new Alert(Alert.AlertType.ERROR, "File is NOT Copy", ButtonType.OK);
+            alert.showAndWait();
+        }
         //Удаление и перемещение https://youtu.be/LILeZhSHf1k?t=5450
-
     }
 
     public void menuItemDialogLogin(ActionEvent actionEvent) {
-
         Dialog<Pair<String, String>> dialog = new Dialog<>();
         dialog.setTitle("Окно авторизации");
         dialog.setHeaderText("Введите Ваши Логин и Пароль:");
@@ -119,15 +136,13 @@ public class Controller implements Initializable {
             pass = password.getText();
         });
 
-        AuthMessage message = new AuthMessage();
-        message.setLogin(nick);
-        message.setPass(pass);
-        myNetwork.auth(message);
+        AuthMessage authMessage = new AuthMessage();
+        authMessage.setLogin(nick);
+        authMessage.setPass(pass);
+        myNetwork.auth(authMessage);
+        System.out.println("Send Date to ServerAuth: "+ nick+" / "+ pass);
+        System.out.println(authMessage);
+
     }
 
-    public void closeAuth() {
-    }
-
-    public void errorAuth() {
-    }
 }

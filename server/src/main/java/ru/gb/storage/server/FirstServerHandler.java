@@ -5,7 +5,6 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import ru.gb.storage.message.*;
-import ru.gb.storage.server.Database.Database;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,31 +13,35 @@ import java.io.RandomAccessFile;
 public class FirstServerHandler extends SimpleChannelInboundHandler <Message> {
     private RandomAccessFile accessFile;
 
-    private int counterMsg=0;
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, Message msg) throws Exception {
         if (msg instanceof AuthMessage) {
             AuthMessage authMessage = (AuthMessage) msg;
-            System.out.println("Authorization");
-            try {
-                if (!Database.isConnected()) {
-                    Database.connect();
-                }
-                if (Database.login(authMessage.getLogin(), authMessage.getPass())) {
-                    TextMessage textMessage = new TextMessage();
-                    textMessage.setText("success");
-                    ctx.writeAndFlush(textMessage);
-                    Database.disconnect();
-                } else {
-                    TextMessage textMessage = new TextMessage();
-                    textMessage.setText("Incorrect login or password");
-                    ctx.writeAndFlush(textMessage);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
+            System.out.println("Authorization " + msg);
+            String login = authMessage.getLogin();
+            String pass = authMessage.getPass();
+            if (login.equals("Admin")&& pass.equals("123")) {
+                TextMessage textMessage = new TextMessage();
+                textMessage.setText("/successAuth");
+                ctx.writeAndFlush(textMessage);
             }
-            // допилить обаботку авторизации
-//            ctx.writeAndFlush(msg);
+//            try {
+//                if (!Database.isConnected()) {
+//                    Database.connect();
+//                }
+//                if (Database.login(authMessage.getLogin(), authMessage.getPass())) {
+//                    TextMessage textMessage = new TextMessage();
+//                    textMessage.setText("success");
+//                    ctx.writeAndFlush(textMessage);
+//                    Database.disconnect();
+//                } else {
+//                    TextMessage textMessage = new TextMessage();
+//                    textMessage.setText("Incorrect login or password");
+//                    ctx.writeAndFlush(textMessage);
+//                }
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
         }
         if (msg instanceof TextMessage){
             TextMessage txtMessage = (TextMessage) msg;
@@ -111,7 +114,7 @@ public class FirstServerHandler extends SimpleChannelInboundHandler <Message> {
         System.out.println("New active channel");
 //        AuthMessage answer = new AuthMessage();
         TextMessage answer = new TextMessage();
-        answer.setText("Successfully connection. For HELP send //help");
+        answer.setText("Successfully connection.");
         ctx.writeAndFlush(answer);
 
     }

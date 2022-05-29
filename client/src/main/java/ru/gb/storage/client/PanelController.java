@@ -19,8 +19,18 @@ import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
 public class PanelController implements Initializable {
+    private static boolean authTrue = false;
 
-        @FXML
+    public static boolean isAuthTrue() {
+        return authTrue;
+    }
+
+    public static void setAuthTrue(boolean authTrue) {
+        PanelController.authTrue = authTrue;
+    }
+
+
+    @FXML
         TableView<FileInfo> filesTable;
 
         @FXML
@@ -29,70 +39,79 @@ public class PanelController implements Initializable {
         @FXML
         TextField pathField;
 
-        @Override
+
+    @Override
         public void initialize (URL location, ResourceBundle resources){
-            TableColumn<FileInfo,String> fileTypeColumn = new TableColumn<>();
-            fileTypeColumn.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().getType().getName()));
-            fileTypeColumn.setPrefWidth(20);
+            if(isAuthTrue()) {
+                diskBox.setEditable(true);
+                TableColumn<FileInfo, String> fileTypeColumn = new TableColumn<>();
+                fileTypeColumn.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().getType().getName()));
+                fileTypeColumn.setPrefWidth(20);
 
-            TableColumn<FileInfo,String> fileNameColumn = new TableColumn<>(" Name ");
-            fileNameColumn.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().getFileName()));
-            fileNameColumn.setPrefWidth(280);
+                TableColumn<FileInfo, String> fileNameColumn = new TableColumn<>(" Name ");
+                fileNameColumn.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().getFileName()));
+                fileNameColumn.setPrefWidth(280);
 
-            TableColumn<FileInfo, Long> fileSizeColumn = new TableColumn<>(" Size ");
-            fileSizeColumn.setCellValueFactory(param -> new SimpleObjectProperty<>(param.getValue().getSize()));
-            fileSizeColumn.setCellFactory(column ->{
-                return new TableCell<FileInfo, Long>() {
-                    @Override
-                    protected void updateItem(Long item, boolean empty){
-                        super.updateItem(item, empty);
-                        if(item == null || empty){
-                            setText (null);
-                            setStyle("");
-                        } else {
-                            String text = String.format("%,d bytes",item);
-                            if (item == -1L){
-                                text = "[DIR]";
+                TableColumn<FileInfo, Long> fileSizeColumn = new TableColumn<>(" Size ");
+                fileSizeColumn.setCellValueFactory(param -> new SimpleObjectProperty<>(param.getValue().getSize()));
+                fileSizeColumn.setCellFactory(column -> {
+                    return new TableCell<FileInfo, Long>() {
+                        @Override
+                        protected void updateItem(Long item, boolean empty) {
+                            super.updateItem(item, empty);
+                            if (item == null || empty) {
+                                setText(null);
+                                setStyle("");
+                            } else {
+                                String text = String.format("%,d bytes", item);
+                                if (item == -1L) {
+                                    text = "[DIR]";
+                                }
+                                setText(text);
                             }
-                            setText(text);
                         }
-                    }
-                };
+                    };
 
-            });
-            fileSizeColumn.setPrefWidth(80);
+                });
+                fileSizeColumn.setPrefWidth(80);
 
-            DateTimeFormatter datf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-            TableColumn<FileInfo,String> fileDateColumn = new TableColumn<>(" Date mod. ");
-            fileDateColumn.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().getLastModified().format(datf)));
-            fileDateColumn.setPrefWidth(120);
+                DateTimeFormatter datf = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+                TableColumn<FileInfo, String> fileDateColumn = new TableColumn<>(" Date mod. ");
+                fileDateColumn.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().getLastModified().format(datf)));
+                fileDateColumn.setPrefWidth(120);
 
-            filesTable.getColumns().addAll(fileTypeColumn,fileNameColumn,fileSizeColumn,fileDateColumn);
-            filesTable.getSortOrder().add(fileTypeColumn);
+                filesTable.getColumns().addAll(fileTypeColumn, fileNameColumn, fileSizeColumn, fileDateColumn);
+                filesTable.getSortOrder().add(fileTypeColumn);
 
-            diskBox.getItems().clear();
-            for (Path p : FileSystems.getDefault().getRootDirectories()){
-                diskBox.getItems().add(p.toString());
-            }
-            diskBox.getSelectionModel().select(0);
-
-            filesTable.setOnMouseClicked(new EventHandler<javafx.scene.input.MouseEvent>() {
-                @Override
-                public void handle(javafx.scene.input.MouseEvent event) {
-                    if(event.getClickCount() == 2){
-                        Path path = Paths.get(pathField.getText()).resolve(filesTable.getSelectionModel().getSelectedItem().getFileName());
-                        if (Files.isDirectory(path)){
-                            updateList(path);
-                        }
-                    }
+                diskBox.getItems().clear();
+                for (Path p : FileSystems.getDefault().getRootDirectories()) {
+                    diskBox.getItems().add(p.toString());
                 }
-            });
+                diskBox.getSelectionModel().select(0);
 
-            updateList((Path) Paths.get("."));
+                filesTable.setOnMouseClicked(new EventHandler<javafx.scene.input.MouseEvent>() {
+                    @Override
+                    public void handle(javafx.scene.input.MouseEvent event) {
+                        if (event.getClickCount() == 2) {
+                            Path path = Paths.get(pathField.getText()).resolve(filesTable.getSelectionModel().getSelectedItem().getFileName());
+                            if (Files.isDirectory(path)) {
+                                updateList(path);
+                            }
+                        }
+                    }
+                });
+
+            } else {
+                pathField.setEditable(false);
+                diskBox.setEditable(false);
+            }
+//            updateList((Path) Paths.get("."));
+//            updateList((Path) Paths.get(myNetwork.getPathSrv()));
         }
 
         public void updateList (Path path){
             try {
+                diskBox.setEditable(true);
                 pathField.setText(path.normalize().toAbsolutePath().toString());
                 filesTable.getItems().clear();
                 filesTable.getItems().addAll(Files.list(path).map(FileInfo::new).collect(Collectors.toList()));

@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.*?>
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-
+<?import javafx.scene.text.Font?>
 <VBox alignment="CENTER" spacing="3" xmlns:fx="http://javafx.com/fxml"
       fx:controller="ru.gb.storage.client.Controller">
-    <MenuBar maxHeight="15" maxWidth="20">
-        <Menu text=" Файл ">
+    <MenuBar maxHeight="17">
+        <Menu text="   Файл   ">
             <MenuItem text=" Залогиниться " onAction="#menuItemDialogLogin" />
             <MenuItem text=" Выход  " onAction="#btnExitAction"/>
         </Menu>
@@ -15,7 +15,10 @@
             <MenuItem text=" О программе " />
         </Menu>
     </MenuBar>
-    <Label text=" DropBoxRockerok " alignment="CENTER" maxWidth="Infinity" />
+    <HBox>
+        <Label text=" Local PC " alignment="CENTER" maxWidth="Infinity" HBox.hgrow="ALWAYS"><font><Font size="16.0" /></font></Label>
+        <Label text=" Network PC "  alignment="CENTER" maxWidth="Infinity" HBox.hgrow="ALWAYS"><font><Font size="16.0" /></font></Label>
+    </HBox>
     <HBox VBox.vgrow="ALWAYS">
         <fx:include fx:id="leftPanel" source = "panel.fxml" HBox.hgrow="ALWAYS"/>
         <fx:include fx:id="rightPanel" source = "panel.fxml" HBox.hgrow="ALWAYS"/>

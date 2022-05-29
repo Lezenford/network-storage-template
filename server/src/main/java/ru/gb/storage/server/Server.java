@@ -16,9 +16,10 @@ public record Server(int port) {
 
     public static void main(String[] args) throws InterruptedException {
         new Server(9000).start();
+
     }
 
-    public void start() throws InterruptedException {
+    public void start() {
         NioEventLoopGroup bigGroup = new NioEventLoopGroup(1);
         NioEventLoopGroup clientGroup = new NioEventLoopGroup();
         try {
@@ -39,12 +40,19 @@ public record Server(int port) {
                     })
                     .option(ChannelOption.SO_BACKLOG, 128)
                     .childOption(ChannelOption.SO_KEEPALIVE, true);
-            ChannelFuture future = server.bind(port).sync();
-            System.out.println("Server is start");
-            future.channel().closeFuture().sync();
-        } finally {
-            bigGroup.shutdownGracefully();
-            clientGroup.shutdownGracefully();
-        }
+                ChannelFuture future = server.bind(port).sync();
+                System.out.println("Server is start");
+                future.channel().closeFuture().sync();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            finally {
+                bigGroup.shutdownGracefully();
+                clientGroup.shutdownGracefully();
+                clientGroup.terminationFuture();
+                bigGroup.terminationFuture();
+            }
+
     }
 }
+
