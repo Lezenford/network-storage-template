@@ -56,10 +56,14 @@ public class FirstServerHandler extends SimpleChannelInboundHandler <Message> {
 
         if (msg instanceof FileRequestMessage){
             FileRequestMessage frMessage = (FileRequestMessage) msg;
-            if (accessFile ==null){
-                final File file = new File(frMessage.getPath());
-                accessFile = new RandomAccessFile(file,"r");
-                sendTailFile(ctx);
+            try {
+                if (accessFile == null) {
+                    final File file = new File(frMessage.getPath());
+                    accessFile = new RandomAccessFile(file, "r");
+                    sendTailFile(ctx);
+                }
+            }catch (NullPointerException nullPointerException){
+                System.out.println("\n nullpointexception "+nullPointerException);
             }
         }
     }
@@ -92,7 +96,6 @@ public class FirstServerHandler extends SimpleChannelInboundHandler <Message> {
                 accessFile=null;
             }
         }
-
     }
 
     @Override
@@ -102,10 +105,11 @@ public class FirstServerHandler extends SimpleChannelInboundHandler <Message> {
     }
 
     @Override
-    public void channelInactive(ChannelHandlerContext ctx) {
-        System.out.println("Client is disconnect");
+    public void channelInactive(ChannelHandlerContext ctx) throws IOException {
+        System.out.println("Client channel is Inactive");
+//        System.out.println("Client is disconnect");
         if (accessFile != null){
-            ctx.close();
+            accessFile.close();
         }
     }
 

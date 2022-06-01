@@ -1,11 +1,16 @@
 package ru.gb.storage.client;
 
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonType;
-import ru.gb.storage.message.*;
+import ru.gb.storage.message.FileContentMessage;
+import ru.gb.storage.message.FileRequestMessage;
+import ru.gb.storage.message.Message;
+import ru.gb.storage.message.TextMessage;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.file.Path;
@@ -14,49 +19,81 @@ import java.nio.file.Paths;
 public class ClientHandler  extends SimpleChannelInboundHandler<Message> {
 
     private static Network network;
+    private RandomAccessFile accessFile;
 
     public static void setNetwork(Network network) {
         ClientHandler.network = network;
     }
 
     @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
-            final FileRequestMessage frMessage = new FileRequestMessage();
-//        frMessage.setPath(String.valueOf(nameFileIn));
-            frMessage.setPath(String.valueOf(Network.getPathCli()));
-            ctx.writeAndFlush(frMessage);
-    }
-
-    @Override
-        protected void channelRead0(ChannelHandlerContext ctx, Message msg) {
+        protected void channelRead0(ChannelHandlerContext ctx, Message msg) throws IOException,NullPointerException, RuntimeException, FileNotFoundException {
             if (msg instanceof TextMessage){
                 TextMessage textmsg = (TextMessage) msg;
                 if (textmsg.getText().equals("/successAuth")) {
                     System.out.println("Success Auth");
-                    PanelController.setAuthTrue(true);
                     network.sendReqAuth(msg);
-                } else {
-                    Alert alert= new Alert(Alert.AlertType.ERROR, "Authorization on Server is fallen, try again", ButtonType.OK);
-                    alert.showAndWait();
                 }
             }
             if (msg instanceof FileContentMessage) {
                 System.out.println("File transfer Start to local " + msg);
                 FileContentMessage fcMessage = (FileContentMessage) msg;
 //                try (final RandomAccessFile raf = new RandomAccessFile(nameFileOut, "rw")) {
-                try (final RandomAccessFile raf = new RandomAccessFile(Network.getPathSrv(), "rw")) {
-                        raf.seek(fcMessage.getStartPosition());
-                    raf.write(fcMessage.getContent());
+//                try {
+                    accessFile =  new RandomAccessFile(Network.getPathSrv(), "rw");
+                    accessFile.seek(fcMessage.getStartPosition());
+                    accessFile.write(fcMessage.getContent());
                     if (fcMessage.isLast()) {
-                        Path pathThis = (Path)Paths.get(network.getPathSrv());
-                        network.controller.panelController.updateList(pathThis);
+                        Path pathThis = (Path)Paths.get(network.getPathCli());
+                        network.getPanelController().updateList(pathThis);
                         System.out.println("File transfer Finish");
                     }
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
+//                }
+//                finally {
+//                    if (accessFile == null) {
+//                        accessFile.close();
+//                    }
+//                }
+            }
+            if (msg instanceof FileRequestMessage){
+                FileRequestMessage frMessage = (FileRequestMessage) msg;
+                if (accessFile == null) {
+                    final File file = new File(frMessage.getPath());
+                    accessFile = new RandomAccessFile(file, "r");
+                    System.out.println(ctx);
+                    sendTailFile(ctx);
                 }
             }
         }
+
+    private void sendTailFile(ChannelHandlerContext ctx) throws IOException {
+        if (accessFile != null){
+            final byte[] fileContent;
+            final long lengthSector = accessFile.length()-accessFile.getFilePointer();
+            if (lengthSector > 64*1024){
+                fileContent = new byte[64*1024];
+            } else{
+                fileContent= new byte[(int)lengthSector];
+            }
+            final FileContentMessage flMessage = new FileContentMessage();
+            flMessage.setStartPosition(accessFile.getFilePointer());
+            accessFile.read(fileContent);
+            flMessage.setContent(fileContent);
+            final boolean last = accessFile.getFilePointer() == accessFile.length();
+            flMessage.setLast(last);
+            ctx.channel().writeAndFlush(flMessage).addListener(new ChannelFutureListener() {
+                @Override
+                public void operationComplete(ChannelFuture future) throws Exception {
+                    if (!last) {
+                        sendTailFile(ctx);
+                    }
+                }
+            });
+            if (last){
+                accessFile.close();
+                accessFile=null;
+            }
+        }
+    }
 }
 
 

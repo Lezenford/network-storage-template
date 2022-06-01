@@ -12,6 +12,6 @@
     </HBox>
     <TableView fx:id="filesTable" VBox.vgrow="ALWAYS" />
     <properties>
-        <contr><fx:reference source="controller" /></contr>
+        <control><fx:reference source="controller" /></control>
     </properties>
 </VBox>

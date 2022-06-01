@@ -22,15 +22,25 @@ public class Network {
     public static SocketChannel sChannel;
     protected Controller controller;
     protected PanelController panelController;
-
     private static String pathSrv = "C:\\Clients\\";
-    private static String pathCli = "C:";
+    private static String pathCli = "C:\\Clients\\LocalPC\\";
 
     public Network(Controller controller) {
         this.controller = controller;
     }
     public Network(PanelController panelController) {
         this.panelController = panelController;
+    }
+
+    public PanelController getPanelController() {
+        return panelController;    }
+    public void setPanelController(PanelController panelController) {
+        this.panelController = panelController;    }
+
+    private static boolean authTrue = false;
+    public static boolean isAuthTrue() { return authTrue; }
+    public void setAuthTrue(boolean authTrue) {
+        this.authTrue = authTrue;
     }
 
     public static String getPathSrv() {
@@ -49,23 +59,23 @@ public class Network {
             final NioEventLoopGroup group = new NioEventLoopGroup(1);
             try {
                 Bootstrap bootstrap = new Bootstrap()
-                        .group(group)
-                        .channel(NioSocketChannel.class)
-                        .option(ChannelOption.SO_KEEPALIVE, true)
-                        .handler(new ChannelInitializer<SocketChannel>() {
-                                     @Override
-                                     protected void initChannel(SocketChannel ch) {
-                                         sChannel = ch;
-                                             ch.pipeline().addLast(
-                                                     new LengthFieldBasedFrameDecoder(1024 * 1024, 0, 3, 0, 3),
-                                                     new LengthFieldPrepender(3),
-                                                     new JsonDecoder(),
-                                                     new JsonEncoder(),
-                                                     new ClientHandler()
-                                             );
-                                     }
-                                 }
-                        );
+                    .group(group)
+                    .channel(NioSocketChannel.class)
+                    .option(ChannelOption.SO_KEEPALIVE, true)
+                    .handler(new ChannelInitializer<SocketChannel>() {
+                         @Override
+                         protected void initChannel(SocketChannel ch) {
+                         ch.pipeline().addLast(
+                                 new LengthFieldBasedFrameDecoder(1024 * 1024, 0, 3, 0, 3),
+                                 new LengthFieldPrepender(3),
+                                 new JsonDecoder(),
+                                 new JsonEncoder(),
+                                 new ClientHandler()
+                         );
+                         sChannel = ch;
+                         }
+                    }
+                    );
                 ClientHandler.setNetwork(this);
                 System.out.println("Client is start");
                 Channel channel;
@@ -82,14 +92,15 @@ public class Network {
         t.start();
     }
 
-
     public void sendReqAuth(Message msg) {
+        setAuthTrue(true);
         createSrvDir(pathSrv);
         controller.updateListPanel(pathSrv,pathCli);
     }
 
     private void createSrvDir(String pathSrv) {
         String myClient = controller.getNick();
+        System.out.println(myClient);
         String pathName=pathSrv;
         pathName+="\\"+myClient;
         setPathSrv(pathName);
@@ -102,20 +113,11 @@ public class Network {
         sChannel.writeAndFlush(msg);
     }
 
-    public void myCopyFile(Path srcPath, Path dstPath) {
-        if (controller.leftPanContr.getSelectedFileName() != null){
-            Network.setPathCli(String.valueOf(srcPath));
-            Network.setPathSrv(String.valueOf(dstPath));
-            FileRequestMessage message = new FileRequestMessage();
-            message.setPath(String.valueOf(srcPath));
-            getsChannel().writeAndFlush(message);
-        }
-        if (controller.leftPanContr.getSelectedFileName() != null){
-            Network.setPathCli(String.valueOf(dstPath));
-            Network.setPathSrv(String.valueOf(srcPath));
-            FileRequestMessage message = new FileRequestMessage();
-            message.setPath(String.valueOf(dstPath));
-            getsChannel().writeAndFlush(message);
-        }
+    public void myCopyFile(Path srcPath) {
+            FileRequestMessage frMessage = new FileRequestMessage();
+            System.out.println("file transfer to "+ String.valueOf(srcPath));
+            System.out.println("Global CLi / Srv "+getPathCli() +" / "+ getPathSrv());
+            frMessage.setPath(String.valueOf(srcPath));
+            getsChannel().writeAndFlush(frMessage);
     }
 }

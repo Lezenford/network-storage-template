@@ -23,18 +23,12 @@ public class Controller implements Initializable {
     private Network myNetwork;
     private String nick;
     private String pass;
-    public PanelController leftPanContr;
-    public PanelController rightPanContr;
-
-    public PanelController getLeftPanContr() {
-        return leftPanContr;
-    }
-    public PanelController getRightPanContr() {
-        return rightPanContr;
-    }
 
     @FXML
     VBox leftPanel, rightPanel;
+
+    public PanelController leftPanContr;
+    public PanelController rightPanContr;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -51,15 +45,18 @@ public class Controller implements Initializable {
         Platform.exit();
     }
 
-    public void updateListPanel(String pathSrv, String pathCli) {
-        rightPanContr = (PanelController) rightPanel.getProperties().get("contrRight");
-        leftPanContr = (PanelController) leftPanel.getProperties().get("contrLeft");
-        leftPanContr.updateList(Path.of(pathCli));
-        rightPanContr.updateList(Path.of(pathSrv));
+    public void updateListPanel(String pathSrv, String pathCli)  {
+        try {
+            rightPanContr = (PanelController) rightPanel.getProperties().get("control");
+            leftPanContr = (PanelController) leftPanel.getProperties().get("control");
+            rightPanContr.updateList(Path.of(pathSrv));
+            leftPanContr.updateList(Path.of(pathCli));
+        } catch (NullPointerException nullE){
+            System.out.println("Error rightPanContr and leftPanContr");
+        }
     }
 
     public void btnCopyAction(ActionEvent actionEvent) {
-
         if (leftPanContr.getSelectedFileName() == null && rightPanContr.getSelectedFileName() == null ){
             Alert alert= new Alert(Alert.AlertType.ERROR, "File not select", ButtonType.OK);
             alert.showAndWait();
@@ -67,25 +64,40 @@ public class Controller implements Initializable {
         }
         PanelController scrPanContr = null, dstPanContr = null;
         if (leftPanContr.getSelectedFileName() != null){
+            myNetwork.setPanelController(leftPanContr);
             scrPanContr = leftPanContr;
             dstPanContr = rightPanContr;
+            System.out.println("file transfer to Local PC");
+            myNetwork.setPanelController(rightPanContr);
         }
         if (rightPanContr.getSelectedFileName() != null){
+            myNetwork.setPanelController(rightPanContr);
             scrPanContr = rightPanContr;
             dstPanContr = leftPanContr;
+            System.out.println("file transfer to Network");
+            myNetwork.setPanelController(leftPanContr);
         }
 
         Path srcPath = Paths.get(scrPanContr.getCurrentPath(),scrPanContr.getSelectedFileName());
         Path dstPath = Paths.get(dstPanContr.getCurrentPath()).resolve(srcPath.getFileName().toString());
+//        if (leftPanContr.getSelectedFileName() != null){
+//            myNetwork.setPathCli(String.valueOf(srcPath));
+//            myNetwork.setPathSrv(String.valueOf(dstPath));
+//        }
+//        if (rightPanContr.getSelectedFileName() != null){
+//            myNetwork.setPathCli(String.valueOf(dstPath));
+//            myNetwork.setPathSrv(String.valueOf(srcPath));
+//        }
         String srcPathStr = String.valueOf(srcPath);
         String dstPathStr = String.valueOf(dstPath);
-
+        System.out.println(srcPathStr +" / " +dstPathStr);
         dstPanContr.updateList(Paths.get(dstPanContr.getCurrentPath()));
 
         try {
 //            Files.copy(srcPath,dstPath);
-            myNetwork.myCopyFile(srcPath,dstPath);
+            myNetwork.myCopyFile(srcPath);
             dstPanContr.updateList(Paths.get(dstPanContr.getCurrentPath()));
+//            scrPanContr.updateList(Paths.get(scrPanContr.getCurrentPath()));
         } catch (Exception e) {
             Alert alert= new Alert(Alert.AlertType.ERROR, "File is NOT Copy", ButtonType.OK);
             alert.showAndWait();

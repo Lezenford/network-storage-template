@@ -19,15 +19,6 @@ import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
 public class PanelController implements Initializable {
-    private static boolean authTrue = false;
-
-    public static boolean isAuthTrue() {
-        return authTrue;
-    }
-
-    public static void setAuthTrue(boolean authTrue) {
-        PanelController.authTrue = authTrue;
-    }
 
 
     @FXML
@@ -42,8 +33,6 @@ public class PanelController implements Initializable {
 
     @Override
         public void initialize (URL location, ResourceBundle resources){
-            if(isAuthTrue()) {
-                diskBox.setEditable(true);
                 TableColumn<FileInfo, String> fileTypeColumn = new TableColumn<>();
                 fileTypeColumn.setCellValueFactory(param -> new SimpleStringProperty(param.getValue().getType().getName()));
                 fileTypeColumn.setPrefWidth(20);
@@ -100,25 +89,21 @@ public class PanelController implements Initializable {
                         }
                     }
                 });
-
-            } else {
-                pathField.setEditable(false);
-                diskBox.setEditable(false);
-            }
+        diskBox.setVisible(false);
 //            updateList((Path) Paths.get("."));
 //            updateList((Path) Paths.get(myNetwork.getPathSrv()));
         }
 
-        public void updateList (Path path){
+        public void updateList(Path path){
             try {
-                diskBox.setEditable(true);
                 pathField.setText(path.normalize().toAbsolutePath().toString());
                 filesTable.getItems().clear();
                 filesTable.getItems().addAll(Files.list(path).map(FileInfo::new).collect(Collectors.toList()));
                 filesTable.sort();
             } catch (IOException e){
-                Alert alert = new Alert(Alert.AlertType.WARNING, "Not update File List",ButtonType.OK);
-                alert.showAndWait();
+                System.out.println("Not update File List");
+//                Alert alert = new Alert(Alert.AlertType.WARNING, "Not update File List",ButtonType.OK);
+//                alert.showAndWait();
             }
         }
 
