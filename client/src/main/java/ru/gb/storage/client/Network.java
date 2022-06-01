@@ -21,21 +21,17 @@ public class Network {
     private final String HOST = "localhost";
     public static SocketChannel sChannel;
     protected Controller controller;
-    protected PanelController panelController;
-    private static String pathSrv = "C:\\Clients\\";
-    private static String pathCli = "C:\\Clients\\LocalPC\\";
+
+    private static String pathRight = "C:\\Clients\\";
+    private static String pathLeft = "C:\\Clients\\LocalPC\\";
+    private static String pathFile;
+
+    public static String getPathFile() { return pathFile;  }
+    public static void setPathFile(String pathFile) { Network.pathFile = pathFile; }
 
     public Network(Controller controller) {
         this.controller = controller;
     }
-    public Network(PanelController panelController) {
-        this.panelController = panelController;
-    }
-
-    public PanelController getPanelController() {
-        return panelController;    }
-    public void setPanelController(PanelController panelController) {
-        this.panelController = panelController;    }
 
     private static boolean authTrue = false;
     public static boolean isAuthTrue() { return authTrue; }
@@ -43,14 +39,14 @@ public class Network {
         this.authTrue = authTrue;
     }
 
-    public static String getPathSrv() {
-        return pathSrv;
+    public static String getPathRight() {
+        return pathRight;
     }
-    public static void setPathSrv(String pathSrv) {
-        Network.pathSrv = pathSrv;
+    public static void setPathRight(String pathRight) {
+        Network.pathRight = pathRight;
     }
-    public static String getPathCli() { return pathCli; }
-    public static void setPathCli(String pathCli) { Network.pathCli = pathCli; }
+    public static String getPathLeft() { return pathLeft; }
+    public static void setPathLeft(String pathLeft) { Network.pathLeft = pathLeft; }
 
     public static SocketChannel getsChannel() { return sChannel; }
 
@@ -94,18 +90,18 @@ public class Network {
 
     public void sendReqAuth(Message msg) {
         setAuthTrue(true);
-        createSrvDir(pathSrv);
-        controller.updateListPanel(pathSrv,pathCli);
+        createRightDir(pathRight);
+        controller.updateListPanel(pathRight,pathLeft);
     }
 
-    private void createSrvDir(String pathSrv) {
+    private void createRightDir(String pathRight) {
         String myClient = controller.getNick();
         System.out.println(myClient);
-        String pathName=pathSrv;
+        String pathName=pathRight;
         pathName+="\\"+myClient;
-        setPathSrv(pathName);
+        setPathRight(pathName);
         File file = new File(pathName);
-        System.out.println(pathSrv);
+        System.out.println(pathRight);
         file.mkdirs();
     }
 
@@ -116,7 +112,7 @@ public class Network {
     public void myCopyFile(Path srcPath) {
             FileRequestMessage frMessage = new FileRequestMessage();
             System.out.println("file transfer to "+ String.valueOf(srcPath));
-            System.out.println("Global CLi / Srv "+getPathCli() +" / "+ getPathSrv());
+            System.out.println("Global Left / Right "+getPathLeft() +" / "+ getPathRight());
             frMessage.setPath(String.valueOf(srcPath));
             getsChannel().writeAndFlush(frMessage);
     }

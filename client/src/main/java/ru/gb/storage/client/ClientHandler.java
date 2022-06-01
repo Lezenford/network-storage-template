@@ -35,24 +35,23 @@ public class ClientHandler  extends SimpleChannelInboundHandler<Message> {
                 }
             }
             if (msg instanceof FileContentMessage) {
-                System.out.println("File transfer Start to local " + msg);
+                System.out.println("File transfer Start to LocalPC ");
                 FileContentMessage fcMessage = (FileContentMessage) msg;
-//                try (final RandomAccessFile raf = new RandomAccessFile(nameFileOut, "rw")) {
-//                try {
-                    accessFile =  new RandomAccessFile(Network.getPathSrv(), "rw");
+                try {
+                    accessFile =  new RandomAccessFile(Network.getPathFile(), "rw");
                     accessFile.seek(fcMessage.getStartPosition());
                     accessFile.write(fcMessage.getContent());
                     if (fcMessage.isLast()) {
-                        Path pathThis = (Path)Paths.get(network.getPathCli());
-                        network.getPanelController().updateList(pathThis);
-                        System.out.println("File transfer Finish");
+                        Path pathThis = (Path)Paths.get(network.getPathRight());
+                        network.controller.leftPanContr.updateList(pathThis);
+                        System.out.println("File transfer to LocalPC Finish");
                     }
-//                }
-//                finally {
-//                    if (accessFile == null) {
-//                        accessFile.close();
-//                    }
-//                }
+                }
+                finally {
+                    if (accessFile == null) {
+                        accessFile.close();
+                    }
+                }
             }
             if (msg instanceof FileRequestMessage){
                 FileRequestMessage frMessage = (FileRequestMessage) msg;
@@ -61,6 +60,9 @@ public class ClientHandler  extends SimpleChannelInboundHandler<Message> {
                     accessFile = new RandomAccessFile(file, "r");
                     System.out.println(ctx);
                     sendTailFile(ctx);
+                    Path pathThis = (Path)Paths.get(network.getPathLeft());
+                    network.controller.rightPanContr.updateList(pathThis);
+                    System.out.println("File transfer to Network Finish");
                 }
             }
         }

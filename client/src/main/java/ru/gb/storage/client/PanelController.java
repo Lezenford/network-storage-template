@@ -91,7 +91,7 @@ public class PanelController implements Initializable {
                 });
         diskBox.setVisible(false);
 //            updateList((Path) Paths.get("."));
-//            updateList((Path) Paths.get(myNetwork.getPathSrv()));
+//            updateList((Path) Paths.get(myNetwork.getPathRight()));
         }
 
         public void updateList(Path path){

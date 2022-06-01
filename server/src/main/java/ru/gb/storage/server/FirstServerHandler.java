@@ -5,6 +5,7 @@ import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import ru.gb.storage.message.*;
+import ru.gb.storage.server.Database.Database;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,28 +21,28 @@ public class FirstServerHandler extends SimpleChannelInboundHandler <Message> {
             System.out.println("Authorization " + msg);
             String login = authMessage.getLogin();
             String pass = authMessage.getPass();
-            if (login.equals("Admin")&& pass.equals("123")) {
-                TextMessage textMessage = new TextMessage();
-                textMessage.setText("/successAuth");
-                ctx.writeAndFlush(textMessage);
-            }
-//            try {
-//                if (!Database.isConnected()) {
-//                    Database.connect();
-//                }
-//                if (Database.login(authMessage.getLogin(), authMessage.getPass())) {
-//                    TextMessage textMessage = new TextMessage();
-//                    textMessage.setText("success");
-//                    ctx.writeAndFlush(textMessage);
-//                    Database.disconnect();
-//                } else {
-//                    TextMessage textMessage = new TextMessage();
-//                    textMessage.setText("Incorrect login or password");
-//                    ctx.writeAndFlush(textMessage);
-//                }
-//            } catch (Exception e) {
-//                e.printStackTrace();
+//            if (login.equals("Admin")&& pass.equals("123")) {
+//                TextMessage textMessage = new TextMessage();
+//                textMessage.setText("/successAuth");
+//                ctx.writeAndFlush(textMessage);
 //            }
+            try {
+                if (!Database.isConnected()) {
+                    Database.connect();
+                }
+                if (Database.login(authMessage.getLogin(), authMessage.getPass())) {
+                    TextMessage textMessage = new TextMessage();
+                    textMessage.setText("success");
+                    ctx.writeAndFlush(textMessage);
+                    Database.disconnect();
+                } else {
+                    TextMessage textMessage = new TextMessage();
+                    textMessage.setText("Incorrect login or password");
+                    ctx.writeAndFlush(textMessage);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         if (msg instanceof TextMessage){
             TextMessage txtMessage = (TextMessage) msg;

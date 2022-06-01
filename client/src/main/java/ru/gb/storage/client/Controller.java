@@ -19,7 +19,6 @@ import java.util.Optional;
 import java.util.ResourceBundle;
 
 public class Controller implements Initializable {
-    public PanelController panelController;
     private Network myNetwork;
     private String nick;
     private String pass;
@@ -45,12 +44,12 @@ public class Controller implements Initializable {
         Platform.exit();
     }
 
-    public void updateListPanel(String pathSrv, String pathCli)  {
+    public void updateListPanel(String pathRight, String pathLeft)  {
         try {
             rightPanContr = (PanelController) rightPanel.getProperties().get("control");
             leftPanContr = (PanelController) leftPanel.getProperties().get("control");
-            rightPanContr.updateList(Path.of(pathSrv));
-            leftPanContr.updateList(Path.of(pathCli));
+            rightPanContr.updateList(Path.of(pathRight));
+            leftPanContr.updateList(Path.of(pathLeft));
         } catch (NullPointerException nullE){
             System.out.println("Error rightPanContr and leftPanContr");
         }
@@ -64,34 +63,24 @@ public class Controller implements Initializable {
         }
         PanelController scrPanContr = null, dstPanContr = null;
         if (leftPanContr.getSelectedFileName() != null){
-            myNetwork.setPanelController(leftPanContr);
             scrPanContr = leftPanContr;
             dstPanContr = rightPanContr;
             System.out.println("file transfer to Local PC");
-            myNetwork.setPanelController(rightPanContr);
+//            myNetwork.setPanelController(leftPanContr);
         }
         if (rightPanContr.getSelectedFileName() != null){
-            myNetwork.setPanelController(rightPanContr);
             scrPanContr = rightPanContr;
             dstPanContr = leftPanContr;
             System.out.println("file transfer to Network");
-            myNetwork.setPanelController(leftPanContr);
+//            myNetwork.setPanelController(rightPanContr);
         }
-
         Path srcPath = Paths.get(scrPanContr.getCurrentPath(),scrPanContr.getSelectedFileName());
         Path dstPath = Paths.get(dstPanContr.getCurrentPath()).resolve(srcPath.getFileName().toString());
-//        if (leftPanContr.getSelectedFileName() != null){
-//            myNetwork.setPathCli(String.valueOf(srcPath));
-//            myNetwork.setPathSrv(String.valueOf(dstPath));
-//        }
-//        if (rightPanContr.getSelectedFileName() != null){
-//            myNetwork.setPathCli(String.valueOf(dstPath));
-//            myNetwork.setPathSrv(String.valueOf(srcPath));
-//        }
+
         String srcPathStr = String.valueOf(srcPath);
         String dstPathStr = String.valueOf(dstPath);
-        System.out.println(srcPathStr +" / " +dstPathStr);
-        dstPanContr.updateList(Paths.get(dstPanContr.getCurrentPath()));
+
+        myNetwork.setPathFile(dstPathStr);
 
         try {
 //            Files.copy(srcPath,dstPath);
@@ -157,4 +146,7 @@ public class Controller implements Initializable {
 
     }
 
+    public void btnDelAction(ActionEvent actionEvent) {
+
+    }
 }
