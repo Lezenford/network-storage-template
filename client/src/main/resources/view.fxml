@@ -8,7 +8,7 @@
       fx:controller="ru.gb.storage.client.Controller">
     <MenuBar maxHeight="17">
         <Menu text="   Файл   ">
-            <MenuItem text=" Залогиниться " onAction="#menuItemDialogLogin" />
+            <MenuItem text=" Авторизоваться " onAction="#menuItemDialogLogin" />
             <MenuItem text=" Выход  " onAction="#btnExitAction"/>
         </Menu>
         <Menu text=" Справка ">

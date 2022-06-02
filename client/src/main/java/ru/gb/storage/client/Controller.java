@@ -51,7 +51,7 @@ public class Controller implements Initializable {
             rightPanContr.updateList(Path.of(pathRight));
             leftPanContr.updateList(Path.of(pathLeft));
         } catch (NullPointerException nullE){
-            System.out.println("Error rightPanContr and leftPanContr");
+            System.out.println("Error rightPannelController and leftPannnelController");
         }
     }
 

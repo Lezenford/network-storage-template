@@ -26,12 +26,16 @@ public class ClientHandler  extends SimpleChannelInboundHandler<Message> {
     }
 
     @Override
-        protected void channelRead0(ChannelHandlerContext ctx, Message msg) throws IOException,NullPointerException, RuntimeException, FileNotFoundException {
+        protected void channelRead0(ChannelHandlerContext ctx, Message msg) throws IOException,NullPointerException, RuntimeException, FileNotFoundException,IllegalStateException {
             if (msg instanceof TextMessage){
                 TextMessage textmsg = (TextMessage) msg;
                 if (textmsg.getText().equals("/successAuth")) {
                     System.out.println("Success Auth");
                     network.sendReqAuth(msg);
+                } else {
+                    System.out.println("Authorisation is failed. Try again");
+//                    Alert err = new Alert(Alert.AlertType.ERROR,"Authorisation is failed. Try again", ButtonType.OK);
+//                    err.showAndWait();
                 }
             }
             if (msg instanceof FileContentMessage) {
@@ -42,9 +46,9 @@ public class ClientHandler  extends SimpleChannelInboundHandler<Message> {
                     accessFile.seek(fcMessage.getStartPosition());
                     accessFile.write(fcMessage.getContent());
                     if (fcMessage.isLast()) {
-                        Path pathThis = (Path)Paths.get(network.getPathRight());
+                        Path pathThis = (Path)Paths.get(network.getPathLeft());
                         network.controller.leftPanContr.updateList(pathThis);
-                        System.out.println("File transfer to LocalPC Finish");
+                        System.out.println("\nFile transfer to LocalPC Finish");
                     }
                 }
                 finally {
@@ -56,11 +60,11 @@ public class ClientHandler  extends SimpleChannelInboundHandler<Message> {
             if (msg instanceof FileRequestMessage){
                 FileRequestMessage frMessage = (FileRequestMessage) msg;
                 if (accessFile == null) {
+                    System.out.println("File transfer to Network Finish");
                     final File file = new File(frMessage.getPath());
                     accessFile = new RandomAccessFile(file, "r");
-                    System.out.println(ctx);
                     sendTailFile(ctx);
-                    Path pathThis = (Path)Paths.get(network.getPathLeft());
+                    Path pathThis = (Path)Paths.get(network.getPathRight());
                     network.controller.rightPanContr.updateList(pathThis);
                     System.out.println("File transfer to Network Finish");
                 }

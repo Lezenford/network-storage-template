@@ -18,21 +18,13 @@ public class FirstServerHandler extends SimpleChannelInboundHandler <Message> {
     protected void channelRead0(ChannelHandlerContext ctx, Message msg) throws Exception {
         if (msg instanceof AuthMessage) {
             AuthMessage authMessage = (AuthMessage) msg;
-            System.out.println("Authorization " + msg);
-            String login = authMessage.getLogin();
-            String pass = authMessage.getPass();
-//            if (login.equals("Admin")&& pass.equals("123")) {
-//                TextMessage textMessage = new TextMessage();
-//                textMessage.setText("/successAuth");
-//                ctx.writeAndFlush(textMessage);
-//            }
             try {
-                if (!Database.isConnected()) {
+//                if (!Database.isConnected()) {
                     Database.connect();
-                }
+//                }
                 if (Database.login(authMessage.getLogin(), authMessage.getPass())) {
                     TextMessage textMessage = new TextMessage();
-                    textMessage.setText("success");
+                    textMessage.setText("/successAuth");
                     ctx.writeAndFlush(textMessage);
                     Database.disconnect();
                 } else {

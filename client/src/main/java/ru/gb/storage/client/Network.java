@@ -14,6 +14,7 @@ import ru.gb.storage.message.FileRequestMessage;
 import ru.gb.storage.message.Message;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 
 public class Network {
@@ -88,20 +89,20 @@ public class Network {
         t.start();
     }
 
-    public void sendReqAuth(Message msg) {
+    public void sendReqAuth(Message msg) throws IOException {
         setAuthTrue(true);
-        createRightDir(pathRight);
+        createRightDir(pathRight,pathLeft);
         controller.updateListPanel(pathRight,pathLeft);
     }
 
-    private void createRightDir(String pathRight) {
+    private void createRightDir(String pathRight, String pathLeft) throws IOException {
         String myClient = controller.getNick();
-        System.out.println(myClient);
         String pathName=pathRight;
         pathName+="\\"+myClient;
         setPathRight(pathName);
         File file = new File(pathName);
-        System.out.println(pathRight);
+        file.mkdirs();
+        file = new File(pathLeft);
         file.mkdirs();
     }
 

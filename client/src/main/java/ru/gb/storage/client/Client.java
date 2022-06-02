@@ -1,6 +1,7 @@
 package ru.gb.storage.client;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
@@ -9,6 +10,7 @@ import javafx.stage.Stage;
 public class Client  extends Application {
     private final int PORT = 9000;
     private final String HOST = "localhost";
+    private Network myNetwork;
 
     public static void main(String[] args) {
         Application.launch(args);
@@ -24,5 +26,10 @@ public class Client  extends Application {
         stage.setResizable(true);
 
         stage.show();
+    }
+    @Override
+    public void stop(){
+        myNetwork.sChannel.close();
+        Platform.exit();
     }
 }
