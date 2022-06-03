@@ -112,7 +112,7 @@ public class Network {
 
     public void myCopyFile(Path srcPath) {
             FileRequestMessage frMessage = new FileRequestMessage();
-            System.out.println("file transfer to "+ String.valueOf(srcPath));
+            System.out.println("file transfer from "+ String.valueOf(srcPath));
             System.out.println("Global Left / Right "+getPathLeft() +" / "+ getPathRight());
             frMessage.setPath(String.valueOf(srcPath));
             getsChannel().writeAndFlush(frMessage);

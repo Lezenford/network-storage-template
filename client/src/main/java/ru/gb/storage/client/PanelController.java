@@ -7,7 +7,8 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
-
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.FileSystems;
@@ -16,7 +17,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.format.DateTimeFormatter;
 import java.util.ResourceBundle;
-import java.util.stream.Collectors;
+import java.util.stream.*;
 
 public class PanelController implements Initializable {
 
@@ -96,14 +97,15 @@ public class PanelController implements Initializable {
 
         public void updateList(Path path){
             try {
+                pathField.clear();
                 pathField.setText(path.normalize().toAbsolutePath().toString());
                 filesTable.getItems().clear();
                 filesTable.getItems().addAll(Files.list(path).map(FileInfo::new).collect(Collectors.toList()));
                 filesTable.sort();
             } catch (IOException e){
                 System.out.println("Not update File List");
-//                Alert alert = new Alert(Alert.AlertType.WARNING, "Not update File List",ButtonType.OK);
-//                alert.showAndWait();
+                Alert alert = new Alert(Alert.AlertType.WARNING, "Not update File List",ButtonType.OK);
+                alert.showAndWait();
             }
         }
 

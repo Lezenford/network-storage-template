@@ -22,6 +22,11 @@ public class FirstServerHandler extends SimpleChannelInboundHandler <Message> {
 //                if (!Database.isConnected()) {
                     Database.connect();
 //                }
+                if (Database.signUp(authMessage.getLogin(), authMessage.getPass())){
+                    TextMessage textMessage = new TextMessage();
+                    textMessage.setText("IncorSignUpLogPass");
+                    ctx.writeAndFlush(textMessage);
+                }
                 if (Database.login(authMessage.getLogin(), authMessage.getPass())) {
                     TextMessage textMessage = new TextMessage();
                     textMessage.setText("/successAuth");
@@ -29,7 +34,7 @@ public class FirstServerHandler extends SimpleChannelInboundHandler <Message> {
                     Database.disconnect();
                 } else {
                     TextMessage textMessage = new TextMessage();
-                    textMessage.setText("Incorrect login or password");
+                    textMessage.setText("IncorLogPass");
                     ctx.writeAndFlush(textMessage);
                 }
             } catch (Exception e) {

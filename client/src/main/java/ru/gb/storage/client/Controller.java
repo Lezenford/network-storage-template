@@ -20,6 +20,7 @@ import java.util.ResourceBundle;
 
 public class Controller implements Initializable {
     private Network myNetwork;
+    private boolean signUp;
     private String nick;
     private String pass;
 
@@ -28,6 +29,14 @@ public class Controller implements Initializable {
 
     public PanelController leftPanContr;
     public PanelController rightPanContr;
+
+    public boolean isSignUp() {
+        return signUp;
+    }
+
+    public void setSignUp(boolean signUp) {
+        this.signUp = signUp;
+    }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -47,11 +56,13 @@ public class Controller implements Initializable {
     public void updateListPanel(String pathRight, String pathLeft)  {
         try {
             rightPanContr = (PanelController) rightPanel.getProperties().get("control");
-            leftPanContr = (PanelController) leftPanel.getProperties().get("control");
             rightPanContr.updateList(Path.of(pathRight));
+            leftPanContr = (PanelController) leftPanel.getProperties().get("control");
             leftPanContr.updateList(Path.of(pathLeft));
         } catch (NullPointerException nullE){
-            System.out.println("Error rightPannelController and leftPannnelController");
+//            System.out.println("Error rightPannelController and leftPannnelController");
+            Alert alert= new Alert(Alert.AlertType.ERROR, "Error rightPannelController and leftPannnelController", ButtonType.OK);
+            alert.showAndWait();
         }
     }
 
@@ -61,18 +72,17 @@ public class Controller implements Initializable {
             alert.showAndWait();
             return;
         }
-        PanelController scrPanContr = null, dstPanContr = null;
+        PanelController scrPanContr = null; // from
+        PanelController dstPanContr = null; // to
         if (leftPanContr.getSelectedFileName() != null){
             scrPanContr = leftPanContr;
             dstPanContr = rightPanContr;
-            System.out.println("file transfer to Local PC");
-//            myNetwork.setPanelController(leftPanContr);
+//            System.out.println("file transfer to Local PC");
         }
         if (rightPanContr.getSelectedFileName() != null){
             scrPanContr = rightPanContr;
             dstPanContr = leftPanContr;
-            System.out.println("file transfer to Network");
-//            myNetwork.setPanelController(rightPanContr);
+//            System.out.println("file transfer to Network");
         }
         Path srcPath = Paths.get(scrPanContr.getCurrentPath(),scrPanContr.getSelectedFileName());
         Path dstPath = Paths.get(dstPanContr.getCurrentPath()).resolve(srcPath.getFileName().toString());
@@ -82,15 +92,14 @@ public class Controller implements Initializable {
 
         myNetwork.setPathFile(dstPathStr);
 
-        try {
-//            Files.copy(srcPath,dstPath);
-            myNetwork.myCopyFile(srcPath);
+            if (!dstPath.toFile().exists()) {
+                myNetwork.myCopyFile(srcPath);
+            }else {
+                Alert alert = new Alert(Alert.AlertType.ERROR, "File transfer failed, because the file exists", ButtonType.OK);
+                alert.showAndWait();
+            }
             dstPanContr.updateList(Paths.get(dstPanContr.getCurrentPath()));
-//            scrPanContr.updateList(Paths.get(scrPanContr.getCurrentPath()));
-        } catch (Exception e) {
-            Alert alert= new Alert(Alert.AlertType.ERROR, "File is NOT Copy", ButtonType.OK);
-            alert.showAndWait();
-        }
+
         //Удаление и перемещение https://youtu.be/LILeZhSHf1k?t=5450
     }
 
@@ -99,8 +108,9 @@ public class Controller implements Initializable {
         dialog.setTitle("Окно авторизации");
         dialog.setHeaderText("Введите Ваши Логин и Пароль:");
 // Set the button types.
+        ButtonType signUpButtonType = new ButtonType("SignUp", ButtonBar.ButtonData.OK_DONE);
         ButtonType loginButtonType = new ButtonType("Login", ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(loginButtonType, ButtonType.CANCEL);
+        dialog.getDialogPane().getButtonTypes().addAll(signUpButtonType,loginButtonType, ButtonType.CANCEL);
 // Create the username and password labels and fields.
         GridPane grid = new GridPane();
         grid.setHgap(10);
@@ -127,6 +137,11 @@ public class Controller implements Initializable {
         // Convert the result to a username-password-pair when the login button is clicked.
         dialog.setResultConverter(dialogButton -> {
             if (dialogButton == loginButtonType) {
+                setSignUp(false);
+                return new Pair<>(username.getText(), password.getText());
+            }
+            if (dialogButton == signUpButtonType){
+                setSignUp(true);
                 return new Pair<>(username.getText(), password.getText());
             }
             return null;
@@ -138,10 +153,11 @@ public class Controller implements Initializable {
         });
 
         AuthMessage authMessage = new AuthMessage();
+        authMessage.setSignUp(isSignUp());
         authMessage.setLogin(nick);
         authMessage.setPass(pass);
         myNetwork.auth(authMessage);
-        System.out.println("Send Date to ServerAuth: "+ nick+" / "+ pass);
+//        System.out.println("Send Date to ServerAuth: "+ nick+" / "+ pass);
         System.out.println(authMessage);
 
     }

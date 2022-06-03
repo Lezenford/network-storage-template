@@ -12,20 +12,19 @@ public class Database {
     private static Connection connection;
     private static Statement stat;
 
-    public static void main(String[] args) {
-        try {
-            if (connect() == true) {
-                System.out.println(" DB is connect");
-                stat.execute(CREATE_TABLE);
-                stat.executeUpdate(ADD_ADMIN);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            disconnect();
-        }
-
-    }
+//    public static void main(String[] args) throws SQLException {
+//        try {
+//            if (connect() == true) {
+//                System.out.println("new DB is connect");
+//                stat.execute(CREATE_TABLE);
+//                stat.executeUpdate(ADD_ADMIN);
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        } finally {
+//            disconnect();
+//        }
+//    }
 
     public static boolean connect() {
         System.out.println("Connect to DB");
@@ -53,23 +52,22 @@ public class Database {
         return resultSet.next();
     }
 
-    public static void disconnect() {
+    public static void disconnect() throws SQLException {
         if(stat != null) {
-            try {
                 stat.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
         }
         if (connection !=null){
-            try {
-                if (connection != null) {
+           if (connection != null) {
                     connection.close();
                 }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-
         }
+    }
+
+    public static boolean signUp(String login, String pass) throws SQLException {
+        prepStat = connection.prepareStatement("INSERT INTO IF NOT EXITS Clients (login, password) VALUES ( ?, ?)");
+        prepStat.setString(1, login);
+        prepStat.setString(2,pass);
+        ResultSet resultSet = prepStat.executeQuery();
+        return resultSet.next();
     }
 }
