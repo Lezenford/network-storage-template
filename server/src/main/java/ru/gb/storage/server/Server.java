@@ -1,7 +1,5 @@
 package ru.gb.storage.server;
 
-import ru.gb.storage.handler.JsonDecoder;
-import ru.gb.storage.handler.JsonEncoder;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -11,15 +9,19 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LengthFieldPrepender;
+import ru.gb.storage.handler.JsonDecoder;
+import ru.gb.storage.handler.JsonEncoder;
+
+import java.io.IOException;
 
 public record Server(int port) {
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) throws InterruptedException, IOException {
         new Server(9000).start();
 
     }
 
-    public void start() {
+    public void start() throws IOException {
         NioEventLoopGroup bigGroup = new NioEventLoopGroup(1);
         NioEventLoopGroup clientGroup = new NioEventLoopGroup();
         try {
@@ -52,7 +54,6 @@ public record Server(int port) {
                 clientGroup.terminationFuture();
                 bigGroup.terminationFuture();
             }
-
     }
 }
 

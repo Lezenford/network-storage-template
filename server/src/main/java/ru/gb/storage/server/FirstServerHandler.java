@@ -125,7 +125,6 @@ public class FirstServerHandler extends SimpleChannelInboundHandler <Message> {
         TextMessage answer = new TextMessage();
         answer.setText("Successfully connection.");
         ctx.writeAndFlush(answer);
-
     }
 
 }
