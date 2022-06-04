@@ -6,7 +6,7 @@
 <VBox alignment="CENTER"  spacing="3" xmlns:fx="http://javafx.com/fxml"
       fx:controller="ru.gb.storage.client.PanelController">
     <HBox>
-                <ComboBox fx:id="diskBox" onAction="#selectDiskAction"/>
+                <ComboBox fx:id="diskBox" onAction="#selectDiskAction" disable="true"/>
                 <TextField fx:id="pathField" editable="false" HBox.hgrow="ALWAYS" />
                 <Button text="  Up  " onAction="#btnPathUpAction"/>
     </HBox>

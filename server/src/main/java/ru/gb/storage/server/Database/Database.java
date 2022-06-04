@@ -46,7 +46,7 @@ public class Database {
 
     public static boolean login(String login, String pass) throws SQLException {
         prepStat = connection.prepareStatement("SELECT * FROM Clients WHERE login = ? AND password = ?");
-        prepStat.setString(1, login);
+        prepStat.setString(1,login);
         prepStat.setString(2,pass);
         ResultSet resultSet = prepStat.executeQuery();
         return resultSet.next();
@@ -63,11 +63,15 @@ public class Database {
         }
     }
 
-    public static boolean signUp(String login, String pass) throws SQLException {
-        prepStat = connection.prepareStatement("INSERT INTO IF NOT EXITS Clients (login, password) VALUES ( ?, ?)");
-        prepStat.setString(1, login);
-        prepStat.setString(2,pass);
-        ResultSet resultSet = prepStat.executeQuery();
-        return resultSet.next();
+    public static boolean signUp(String login, String pass) {
+        try {
+            prepStat = connection.prepareStatement("INSERT INTO Clients (login, password) VALUES ( ?, ?);");
+            prepStat.setString(1,login);
+            prepStat.setString(2,pass);
+            prepStat.executeUpdate();
+        }catch (SQLException e){
+            return false;
+        }
+        return true;
     }
 }

@@ -27,6 +27,9 @@ public class Controller implements Initializable {
     @FXML
     VBox leftPanel, rightPanel;
 
+    @FXML
+    Button btnCopy, btnMove, btnDel;
+
     public PanelController leftPanContr;
     public PanelController rightPanContr;
 
@@ -49,8 +52,16 @@ public class Controller implements Initializable {
     }
 
     public void btnExitAction(ActionEvent actionEvent) {
-        myNetwork.sChannel.close();
+        if (myNetwork.sChannel.isActive()){
+            myNetwork.sChannel.close();
+        }
         Platform.exit();
+    }
+
+    public void authTrueReq(){
+        btnCopy.setDisable(false);
+        btnDel.setDisable(false);
+        btnMove.setDisable(false);
     }
 
     public void updateListPanel(String pathRight, String pathLeft)  {
@@ -104,62 +115,74 @@ public class Controller implements Initializable {
     }
 
     public void menuItemDialogLogin(ActionEvent actionEvent) {
-        Dialog<Pair<String, String>> dialog = new Dialog<>();
-        dialog.setTitle("Окно авторизации");
-        dialog.setHeaderText("Введите Ваши Логин и Пароль:");
+//        try {
+//            myNetwork.thread1.start();
+//        }catch (NullPointerException ne){
+//            Alert alert = new Alert(Alert.AlertType.ERROR,"Network is wrong. Please check yor network connection, or Server is stop",ButtonType.OK);
+//            alert.showAndWait();
+//        }catch (ConnectException ce){
+//            Alert alert = new Alert(Alert.AlertType.ERROR,"Network is wrong. Please check yor network connection, or Server is stop",ButtonType.OK);
+//            alert.showAndWait();
+//        }
+        if (myNetwork.sChannel != null){
+            Dialog<Pair<String, String>> dialog = new Dialog<>();
+            dialog.setTitle("Окно авторизации");
+            dialog.setHeaderText("Введите Ваши Логин и Пароль:");
 // Set the button types.
-        ButtonType signUpButtonType = new ButtonType("SignUp", ButtonBar.ButtonData.OK_DONE);
-        ButtonType loginButtonType = new ButtonType("Login", ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(signUpButtonType,loginButtonType, ButtonType.CANCEL);
+            ButtonType signUpButtonType = new ButtonType("SignUp", ButtonBar.ButtonData.OK_DONE);
+            ButtonType loginButtonType = new ButtonType("Login", ButtonBar.ButtonData.OK_DONE);
+            dialog.getDialogPane().getButtonTypes().addAll(signUpButtonType, loginButtonType, ButtonType.CANCEL);
 // Create the username and password labels and fields.
-        GridPane grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-        grid.setPadding(new Insets(20, 150, 10, 10));
-        TextField username = new TextField();
-        username.setPromptText("Username");
-        PasswordField password = new PasswordField();
-        password.setPromptText("Password");
-        grid.add(new Label("Username:"), 0, 0);
-        grid.add(username, 1, 0);
-        grid.add(new Label("Password:"), 0, 1);
-        grid.add(password, 1, 1);
-        // Enable/Disable login button depending on whether a username was entered.
-        Node loginButton = dialog.getDialogPane().lookupButton(loginButtonType);
-        loginButton.setDisable(true);
-        // Do some validation (using the Java 8 lambda syntax).
-        username.textProperty().addListener((observable, oldValue, newValue) -> {
-            loginButton.setDisable(newValue.trim().isEmpty());
-        });
-        dialog.getDialogPane().setContent(grid);
-        // Request focus on the username field by default.
-        Platform.runLater(() -> username.requestFocus());
-        // Convert the result to a username-password-pair when the login button is clicked.
-        dialog.setResultConverter(dialogButton -> {
-            if (dialogButton == loginButtonType) {
-                setSignUp(false);
-                return new Pair<>(username.getText(), password.getText());
-            }
-            if (dialogButton == signUpButtonType){
-                setSignUp(true);
-                return new Pair<>(username.getText(), password.getText());
-            }
-            return null;
-        });
-        Optional<Pair<String, String>> result = dialog.showAndWait();
-        result.ifPresent(usernamePassword -> {
-            nick = username.getText();
-            pass = password.getText();
-        });
+            GridPane grid = new GridPane();
+            grid.setHgap(10);
+            grid.setVgap(10);
+            grid.setPadding(new Insets(20, 150, 10, 10));
+            TextField username = new TextField();
+            username.setPromptText("Username");
+            PasswordField password = new PasswordField();
+            password.setPromptText("Password");
+            grid.add(new Label("Username:"), 0, 0);
+            grid.add(username, 1, 0);
+            grid.add(new Label("Password:"), 0, 1);
+            grid.add(password, 1, 1);
+            // Enable/Disable login button depending on whether a username was entered.
+            Node loginButton = dialog.getDialogPane().lookupButton(loginButtonType);
+            Node signUpButton = dialog.getDialogPane().lookupButton(signUpButtonType);
+            signUpButton.setDisable(true);
+            loginButton.setDisable(true);
+            // Do some validation (using the Java 8 lambda syntax).
+            username.textProperty().addListener((observable, oldValue, newValue) -> {
+                loginButton.setDisable(newValue.trim().isEmpty());
+                signUpButton.setDisable(newValue.trim().isEmpty());
+            });
+            dialog.getDialogPane().setContent(grid);
+            // Request focus on the username field by default.
+            Platform.runLater(() -> username.requestFocus());
+            // Convert the result to a username-password-pair when the login button is clicked.
+            dialog.setResultConverter(dialogButton -> {
+                if (dialogButton == loginButtonType) {
+                    setSignUp(false);
+                    return new Pair<>(username.getText(), password.getText());
+                }
+                if (dialogButton == signUpButtonType) {
+                    setSignUp(true);
+                    return new Pair<>(username.getText(), password.getText());
+                }
+                return null;
+            });
+            Optional<Pair<String, String>> result = dialog.showAndWait();
+            result.ifPresent(usernamePassword -> {
+                nick = username.getText();
+                pass = password.getText();
+            });
 
-        AuthMessage authMessage = new AuthMessage();
-        authMessage.setSignUp(isSignUp());
-        authMessage.setLogin(nick);
-        authMessage.setPass(pass);
-        myNetwork.auth(authMessage);
-//        System.out.println("Send Date to ServerAuth: "+ nick+" / "+ pass);
-        System.out.println(authMessage);
-
+            AuthMessage authMessage = new AuthMessage();
+            authMessage.setSignUp(isSignUp());
+            authMessage.setLogin(nick);
+            authMessage.setPass(pass);
+            myNetwork.auth(authMessage);
+            //            System.out.println(authMessage);
+        }
     }
 
     public void btnDelAction(ActionEvent actionEvent) {

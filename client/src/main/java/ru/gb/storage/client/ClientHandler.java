@@ -30,17 +30,21 @@ public class ClientHandler  extends SimpleChannelInboundHandler<Message> {
         protected void channelRead0(ChannelHandlerContext ctx, Message msg) throws IOException,NullPointerException, RuntimeException, FileNotFoundException,IllegalStateException {
             if (msg instanceof TextMessage){
                 TextMessage textmsg = (TextMessage) msg;
-                if (network.isAuthTrue()) {
-                    if (textmsg.getText().equals("/successAuth")) {
-//                        System.out.println("Success Auth");
-                        Alert err = new Alert(Alert.AlertType.ERROR, "Authorisation is failed. Try again", ButtonType.OK);
-                        err.showAndWait();
-                        network.sendReqAuth(msg);
-                    } else {
-//                        System.out.println("Authorisation is failed. Try again");
-                        Alert err = new Alert(Alert.AlertType.ERROR, "Authorisation is failed. Try again", ButtonType.OK);
-                        err.showAndWait();
-                    }
+                if (textmsg.getText().equals("/correctSignUp")){
+                    Alert err = new Alert(Alert.AlertType.CONFIRMATION, "Тew User registered", ButtonType.OK);
+                    err.showAndWait();
+                }
+                if (textmsg.getText().equals("/successAuth")) {
+                    System.out.println("Success Auth");
+                    network.sendReqAuth(msg);
+                }
+                if (textmsg.getText().equals("/incorLogPass")){
+                    Alert err = new Alert(Alert.AlertType.ERROR, "Incorrect login/password combination. Try again", ButtonType.OK);
+                    err.showAndWait();
+                }
+                if (textmsg.getText().equals("/incorSignUp")){
+                    Alert err = new Alert(Alert.AlertType.ERROR, "Login incorrect or already exists. Try again", ButtonType.OK);
+                    err.showAndWait();
                 }
             }
             if (msg instanceof FileContentMessage) {

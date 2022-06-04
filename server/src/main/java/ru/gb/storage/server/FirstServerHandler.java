@@ -22,10 +22,17 @@ public class FirstServerHandler extends SimpleChannelInboundHandler <Message> {
 //                if (!Database.isConnected()) {
                     Database.connect();
 //                }
-                if (Database.signUp(authMessage.getLogin(), authMessage.getPass())){
-                    TextMessage textMessage = new TextMessage();
-                    textMessage.setText("IncorSignUpLogPass");
-                    ctx.writeAndFlush(textMessage);
+                if (authMessage.isSignUp()) {
+                    if (Database.signUp(authMessage.getLogin(), authMessage.getPass())) {
+                        System.out.println("New Client full registration");
+                        TextMessage textMessage = new TextMessage();
+                        textMessage.setText("/correctSignUp");
+                        ctx.writeAndFlush(textMessage);
+                    } else {
+                        TextMessage textMessage = new TextMessage();
+                        textMessage.setText("/incorSignUp");
+                        ctx.writeAndFlush(textMessage);
+                    }
                 }
                 if (Database.login(authMessage.getLogin(), authMessage.getPass())) {
                     TextMessage textMessage = new TextMessage();
@@ -34,7 +41,7 @@ public class FirstServerHandler extends SimpleChannelInboundHandler <Message> {
                     Database.disconnect();
                 } else {
                     TextMessage textMessage = new TextMessage();
-                    textMessage.setText("IncorLogPass");
+                    textMessage.setText("/incorLogPass");
                     ctx.writeAndFlush(textMessage);
                 }
             } catch (Exception e) {

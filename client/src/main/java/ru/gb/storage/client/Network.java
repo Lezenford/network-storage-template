@@ -22,10 +22,11 @@ public class Network {
     private final String HOST = "localhost";
     public static SocketChannel sChannel;
     protected Controller controller;
-
+    private static boolean authTrue = false;
     private static String pathRight = "C:\\Clients\\";
     private static String pathLeft = "C:\\Clients\\LocalPC\\";
     private static String pathFile;
+    protected static Thread thread1;
 
     public static String getPathFile() { return pathFile;  }
     public static void setPathFile(String pathFile) { Network.pathFile = pathFile; }
@@ -34,7 +35,6 @@ public class Network {
         this.controller = controller;
     }
 
-    private static boolean authTrue = false;
     public static boolean isAuthTrue() { return authTrue; }
     public void setAuthTrue(boolean authTrue) {
         this.authTrue = authTrue;
@@ -51,8 +51,10 @@ public class Network {
 
     public static SocketChannel getsChannel() { return sChannel; }
 
+
     public void start() {
-        Thread t = new Thread(()-> {
+        thread1 = new Thread(()-> {
+//            Thread t = new Thread(()-> {
             final NioEventLoopGroup group = new NioEventLoopGroup(1);
             try {
                 Bootstrap bootstrap = new Bootstrap()
@@ -85,13 +87,14 @@ public class Network {
                 sChannel.close();
             }
         });
-        t.setDaemon(true);
-        t.start();
+        thread1.setDaemon(true);
+        thread1.start();
     }
 
     public void sendReqAuth(Message msg) throws IOException {
         setAuthTrue(true);
         createRightDir(pathRight,pathLeft);
+        controller.authTrueReq();
         controller.updateListPanel(pathRight,pathLeft);
     }
 

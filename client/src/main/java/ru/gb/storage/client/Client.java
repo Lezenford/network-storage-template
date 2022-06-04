@@ -29,7 +29,9 @@ public class Client  extends Application {
     }
     @Override
     public void stop(){
-        myNetwork.sChannel.close();
+        if (myNetwork.sChannel.isActive()){
+            myNetwork.sChannel.close();
+        }
         Platform.exit();
     }
 }

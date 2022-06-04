@@ -7,13 +7,13 @@
 <VBox alignment="CENTER" spacing="3" xmlns:fx="http://javafx.com/fxml"
       fx:controller="ru.gb.storage.client.Controller">
     <MenuBar maxHeight="17">
-        <Menu text="   Файл   ">
-            <MenuItem text=" Авторизоваться " onAction="#menuItemDialogLogin" />
-            <MenuItem text=" Выход  " onAction="#btnExitAction"/>
+        <Menu text="   File   ">
+            <MenuItem text="  Sign Up/In " onAction="#menuItemDialogLogin" />
+            <MenuItem text="  Exit  " onAction="#btnExitAction"/>
         </Menu>
-        <Menu text=" Справка ">
-            <MenuItem text=" О программе " />
-        </Menu>
+<!--        <Menu text=" Help ">-->
+<!--            <MenuItem text=" About " />-->
+<!--        </Menu>-->
     </MenuBar>
     <HBox>
         <Label text=" Local PC " alignment="CENTER" maxWidth="Infinity" HBox.hgrow="ALWAYS"><font><Font size="16.0" /></font></Label>
@@ -24,9 +24,9 @@
         <fx:include fx:id="rightPanel" source = "panel.fxml" HBox.hgrow="ALWAYS"/>
     </HBox>
     <HBox spacing="5">
-        <Button maxWidth="Infinity" text="Copy file" focusTraversable="false" HBox.hgrow="ALWAYS" onAction="#btnCopyAction" />
-        <Button maxWidth="Infinity" text="Move file" focusTraversable="false" HBox.hgrow="ALWAYS" />
-        <Button maxWidth="Infinity" text="Delete file" focusTraversable="false" HBox.hgrow="ALWAYS" onAction="#btnDelAction"/>
+        <Button maxWidth="Infinity" fx:id="btnCopy" text="Copy file" focusTraversable="false" HBox.hgrow="ALWAYS" onAction="#btnCopyAction" disable="true"/>
+        <Button maxWidth="Infinity" fx:id="btnMove" text="Move file" focusTraversable="false" HBox.hgrow="ALWAYS" disable="true"/>
+        <Button maxWidth="Infinity" fx:id="btnDel" text="Delete file" focusTraversable="false" HBox.hgrow="ALWAYS" onAction="#btnDelAction" disable="true"/>
         <padding>
             <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
         </padding>
