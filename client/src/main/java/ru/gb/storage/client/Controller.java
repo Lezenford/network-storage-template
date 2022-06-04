@@ -110,8 +110,6 @@ public class Controller implements Initializable {
                 alert.showAndWait();
             }
             dstPanContr.updateList(Paths.get(dstPanContr.getCurrentPath()));
-
-        //Удаление и перемещение https://youtu.be/LILeZhSHf1k?t=5450
     }
 
     public void menuItemDialogLogin(ActionEvent actionEvent) {
