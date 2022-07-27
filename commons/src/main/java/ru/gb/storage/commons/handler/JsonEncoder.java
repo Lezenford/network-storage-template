@@ -13,9 +13,7 @@ public class JsonEncoder extends MessageToMessageEncoder<Message> {
 
     @Override
     protected void encode(ChannelHandlerContext ctx, Message msg, List<Object> out) throws Exception {
-
-        String value = OBJECT_MAPPER.writeValueAsString(msg);
-        System.out.println("Outgoing message " + value);
-        out.add(value);
+        byte[] value = OBJECT_MAPPER.writeValueAsBytes(msg);
+        out.add(ctx.alloc().buffer().writeBytes(value));
     }
 }

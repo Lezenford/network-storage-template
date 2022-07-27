@@ -9,8 +9,6 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.handler.codec.LengthFieldPrepender;
-import io.netty.handler.codec.string.StringDecoder;
-import io.netty.handler.codec.string.StringEncoder;
 import ru.gb.storage.commons.handler.JsonDecoder;
 import ru.gb.storage.commons.handler.JsonEncoder;
 
@@ -43,8 +41,6 @@ public class Server {
 
                                     new LengthFieldBasedFrameDecoder(1024 * 1024, 0, 3, 0, 3),
                                     new LengthFieldPrepender(3),
-                                    new StringDecoder(),
-                                    new StringEncoder(),
                                     new JsonDecoder(),
                                     new JsonEncoder(),
                                     new FirstServerHandler());

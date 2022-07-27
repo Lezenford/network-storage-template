@@ -2,12 +2,13 @@ package ru.gb.storage.server;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
-import ru.gb.storage.commons.message.DataMessage;
-import ru.gb.storage.commons.message.AuthMessage;
-import ru.gb.storage.commons.message.Message;
-import ru.gb.storage.commons.message.TextMessage;
+import ru.gb.storage.commons.message.*;
+
+import java.io.*;
 
 public class FirstServerHandler extends SimpleChannelInboundHandler<Message> {
+
+
 
     @Override
     public void channelActive(ChannelHandlerContext ctx)  {
@@ -38,6 +39,33 @@ public class FirstServerHandler extends SimpleChannelInboundHandler<Message> {
             ctx.writeAndFlush(msg);
         }
 
+        if(msg instanceof FileRequestMassage){
+            FileRequestMassage frm = (FileRequestMassage) msg;
+           final File file = new File(frm.getPath());
+
+            try (final RandomAccessFile accessFile = new RandomAccessFile(file, "r")){
+               while (accessFile.getFilePointer() != accessFile.length()){
+                   final byte[] fileContent;
+                   final long available = accessFile.length() - accessFile.getFilePointer();
+                   if(available > 64 * 1024){
+                       fileContent = new byte[64 * 1024];
+                   } else {
+                       fileContent = new byte[(int) available];
+                   }
+
+                   final FileContentMessage message = new FileContentMessage();
+                   message.setStartPosition(accessFile.getFilePointer());
+                   accessFile.read(fileContent);
+                   message.setContent(fileContent);
+                   message.setLast(accessFile.getFilePointer() == accessFile.length());
+                   ctx.writeAndFlush(message);
+
+               }
+
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
 
